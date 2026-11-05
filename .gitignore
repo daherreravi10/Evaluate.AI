@@ -1,0 +1,14 @@
+# secrets
+.env
+# supplied files, API output, caches: the rules forbid them in the repo
+data/
+*.parquet
+# python
+__pycache__/
+.pytest_cache/
+*.pyc
+# keep only the hand-in outputs
+outputs/*
+!outputs/rents_*.csv
+!outputs/valuation_*.csv
+!outputs/metrics_*.json
