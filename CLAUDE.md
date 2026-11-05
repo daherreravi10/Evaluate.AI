@@ -27,6 +27,10 @@ CSV: UTF-8, one header, one row per input gnaf_id, no blanks. Rents may end in .
 ## Commands
 ```
 python scripts/make_mock_data.py      # synthetic files with the documented columns (before the day)
+python scripts/make_mock_exo.py       # synthetic outside files in the real raw formats
+python scripts/fetch_exo.py           # REAL outside data (laptop with internet)
+python -m src.exo.build               # parse outside data -> data/exo/*.parquet
+python scripts/exo_ablation.py --each # keep only the outside sources that help
 python -m src.rents [--quick]         # held-out check + outputs/rents_<team>.csv + metrics_rents.json
 python -m src.valuation [--quick]     # same for Task 5 (--judging-cap: see report)
 python -m src.validate                # contract check of every CSV in outputs/
@@ -50,6 +54,7 @@ src/metrics.py    judges' metrics      src/validate.py   CSV contract check
 src/client.py     cached, throttled API client, same behaviour as the official one (python -m src.client = smoke test)
 src/report.py     report.html          notes.md          the team's words for the report
 app/app.py        Streamlit demo
+src/exo/          outside data: osm.py census.py bonds.py vg.py build.py common.py
 ```
 
 ## Facts about the data (from the task pages)
@@ -70,6 +75,22 @@ app/app.py        Streamlit demo
   `/suburbs/{name}/listings/for-rent` and `for-sale` are live (after the cut-off): never use them.
 - Optional extra data: `python scripts/api_history.py --task rents|valuation --limit N` saves filtered
   history to data/cache/; the pipelines merge it automatically. Keep it only if the held-out score improves.
+
+## Outside data (src/exo/, all optional, all free)
+| Source | Task | What | As-of rule in code |
+|---|---|---|---|
+| OpenStreetMap (Overpass) | 4, 5 | km to train/metro, light rail, supermarket, park, school, main road; counts nearby | Overpass `[date:"2026-07-31T23:59:59Z"]`: the map as it was on the cut-off |
+| ABS Census 2021 (G02 by SA1 + MB allocation) | 4, 5 | SA1 median rent, household income, household size, people per bedroom, age | Census night Aug 2021 |
+| NSW rental bond lodgements | 4 | median new-lease rent by postcode x bedrooms, 6-month growth | only files published before each snapshot (month M is published in M+1) |
+| NSW Valuer General bulk sales | 5 | extra strata sales matched to gnaf_id by address | contract AND settlement on or before the cut-off, weekly file dated on or before it |
+
+- `python scripts/fetch_exo.py` downloads (laptop with internet; the workspace cannot reach these sites).
+  Anything that fails prints where to get it by hand into `data/exo/raw/<source>/`.
+- `python -m src.exo.build` parses `data/exo/raw/` into `data/exo/*.parquet`. Pipelines use whatever exists.
+- Switches: `EXO=0` (none), `EXO_SOURCES=osm,census` (subset).
+- `python scripts/exo_ablation.py --each` decides with the held-out check which sources stay.
+  VG sales are used for training only; test sets are identical with or without outside data.
+- VG data is CC BY-NC-ND: never commit it, never republish it. Credit every source in README.md.
 
 ## Rules for agents
 1. NEVER guess a column. On the day, print `df.columns` and 3 rows of each supplied file, then fix

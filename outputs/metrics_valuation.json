@@ -3,175 +3,206 @@
  "cutoff": "2026-08-31",
  "split": "2026-05-01",
  "horizon_months": 2,
- "snapshots": 4,
- "train_rows_holdout": 5831,
- "train_rows_final": 5918,
+ "snapshots": 12,
+ "train_rows_holdout": 18277,
+ "train_rows_final": 18038,
  "test_rows": 2173,
  "test_from": "2026-05-01",
  "test_to": "2026-08-30",
  "heldout": {
   "Suburb x bedrooms median": {
    "n": 2173,
-   "share_within_10pct": 0.30372756557754255,
-   "hits_within_10pct": 660,
-   "median_abs_error": 149214.65180756815,
-   "r2": -0.09503216225743594,
+   "share_within_10pct": 0.3018867924528302,
+   "hits_within_10pct": 656,
+   "median_abs_error": 149063.83710171795,
+   "r2": -0.09824607804398044,
    "blank": 0
   },
   "Last sale moved by repeat-sales index": {
    "n": 2173,
-   "share_within_10pct": 0.5430280717901519,
-   "hits_within_10pct": 1180,
-   "median_abs_error": 73726.66409665719,
-   "r2": 0.5396814640317672,
+   "share_within_10pct": 0.5651173492867004,
+   "hits_within_10pct": 1228,
+   "median_abs_error": 70327.57265366346,
+   "r2": 0.5716186956569027,
    "blank": 0
   },
   "Asking price if listed, else last sale": {
    "n": 2173,
-   "share_within_10pct": 0.5931891394385642,
-   "hits_within_10pct": 1289,
-   "median_abs_error": 64295.11456376978,
-   "r2": 0.5925922031982922,
+   "share_within_10pct": 0.6111366774045099,
+   "hits_within_10pct": 1328,
+   "median_abs_error": 60865.40030826733,
+   "r2": 0.6167026895431342,
    "blank": 0
   },
   "Our model (LightGBM, snapshots)": {
    "n": 2173,
-   "share_within_10pct": 0.5830648872526462,
-   "hits_within_10pct": 1267,
-   "median_abs_error": 65548.1428852476,
-   "r2": 0.6257612240955295,
+   "share_within_10pct": 0.6249424758398527,
+   "hits_within_10pct": 1358,
+   "median_abs_error": 58985.83933468384,
+   "r2": 0.6720321855504562,
    "blank": 0
   }
  },
  "model_within10_ci95": [
-  0.5623561895996319,
-  0.6035549930971008
+  0.6044523699953981,
+  0.6452139898757479
  ],
  "model_within10_227_draws": [
-  0.5198237885462555,
-  0.5814977973568282,
-  0.6431718061674009
+  0.5726872246696035,
+  0.6255506607929515,
+  0.6784140969162996
  ],
  "importance": [
   {
    "feature": "anchor_ladj",
-   "share": 0.06131935453357414
+   "share": 0.06221697931935901
   },
   {
    "feature": "bldg_bed_med_rel",
-   "share": 0.060011925629175095
+   "share": 0.05153465742142497
   },
   {
    "feature": "bldg_med",
-   "share": 0.05712430537976067
+   "share": 0.048556628624058726
   },
   {
    "feature": "own_last_age_y",
-   "share": 0.05230351978580977
-  },
-  {
-   "feature": "near_dist_km",
-   "share": 0.05119220690472265
+   "share": 0.04649995020298311
   },
   {
    "feature": "own_last_ladj_rel",
-   "share": 0.05080903949348537
+   "share": 0.04604301382870715
   },
   {
    "feature": "mb_med",
-   "share": 0.050142772701954615
-  },
-  {
-   "feature": "near_med",
-   "share": 0.04985041728357741
-  },
-  {
-   "feature": "longitude",
-   "share": 0.04905932963427115
-  },
-  {
-   "feature": "floor",
-   "share": 0.0468327007456154
-  },
-  {
-   "feature": "latitude",
-   "share": 0.04666825040338822
-  },
-  {
-   "feature": "bldg_bed_med",
-   "share": 0.043770959619169325
-  },
-  {
-   "feature": "mb_n",
-   "share": 0.04278696982985643
-  },
-  {
-   "feature": "flats_in_building",
-   "share": 0.04123920066951802
+   "share": 0.03609198956316408
   },
   {
    "feature": "own_last_ladj",
-   "share": 0.03966077734439808
+   "share": 0.03577064646734108
+  },
+  {
+   "feature": "near_dist_km",
+   "share": 0.03339711617515447
+  },
+  {
+   "feature": "bldg_bed_med",
+   "share": 0.03269789213146386
+  },
+  {
+   "feature": "floor",
+   "share": 0.03255908238563865
+  },
+  {
+   "feature": "near_med",
+   "share": 0.031191706861434337
+  },
+  {
+   "feature": "osm_km_park",
+   "share": 0.029207345730785955
+  },
+  {
+   "feature": "mb_n",
+   "share": 0.027830377544683815
+  },
+  {
+   "feature": "osm_km_supermarket",
+   "share": 0.027570428451902593
+  },
+  {
+   "feature": "osm_km_school",
+   "share": 0.026420206796821156
   }
  ],
  "by_anchor": {
   "had a For Sale advert": {
    "n": 276,
-   "share_within_10pct": 0.8913043478260869,
-   "hits_within_10pct": 246,
-   "median_abs_error": 30169.772890013526,
-   "r2": 0.9334098260750987,
+   "share_within_10pct": 0.9492753623188406,
+   "hits_within_10pct": 262,
+   "median_abs_error": 25016.295626244624,
+   "r2": 0.9580021506696255,
    "blank": 0,
    "rows": 276
   },
   "had a past sale": {
-   "n": 1300,
-   "share_within_10pct": 0.6323076923076923,
-   "hits_within_10pct": 822,
-   "median_abs_error": 58188.05972738325,
-   "r2": 0.8039540276702724,
+   "n": 1344,
+   "share_within_10pct": 0.6703869047619048,
+   "hits_within_10pct": 901,
+   "median_abs_error": 54345.614020463254,
+   "r2": 0.8338234186538261,
    "blank": 0,
-   "rows": 1300
+   "rows": 1344
   },
   "building only": {
-   "n": 547,
-   "share_within_10pct": 0.3217550274223035,
+   "n": 505,
+   "share_within_10pct": 0.3485148514851485,
    "hits_within_10pct": 176,
-   "median_abs_error": 137213.49216033588,
-   "r2": 0.016310697028162346,
+   "median_abs_error": 128075.81679938303,
+   "r2": 0.0658498335232599,
    "blank": 0,
-   "rows": 547
+   "rows": 505
   },
   "suburb only": {
-   "n": 50,
-   "share_within_10pct": 0.46,
-   "hits_within_10pct": 23,
-   "median_abs_error": 78985.83939502074,
-   "r2": 0.40652130476500103,
+   "n": 48,
+   "share_within_10pct": 0.3958333333333333,
+   "hits_within_10pct": 19,
+   "median_abs_error": 100286.52247595537,
+   "r2": 0.3241676933410902,
    "blank": 0,
-   "rows": 50
+   "rows": 48
   }
  },
  "cap_scan": {
-  "1050000": 0.606994937873907,
-  "1100000": 0.616658996778647,
-  "1150000": 0.6056143580303728,
-  "1200000": 0.5945697192820985,
-  "1300000": 0.5844454670961804,
-  "none": 0.5830648872526462
+  "1050000": 0.6424298205246204,
+  "1100000": 0.6516336861481823,
+  "1150000": 0.6424298205246204,
+  "1200000": 0.6355269213069489,
+  "1300000": 0.6267832489645652,
+  "none": 0.6249424758398527
  },
  "best_cap": "1100000",
  "judging_cap_applied": false,
  "share_test_with_asking": 0.12701334560515418,
- "share_test_with_last_sale": 0.6884491486424298,
+ "share_test_with_last_sale": 0.7146801656695813,
  "floor_effect": {
-  "1": 966485.8972791142,
-  "5": 987861.8224666547,
-  "10": 990582.6977510916,
-  "20": 986466.7660753967,
-  "30": 991977.0642706935
+  "1": 958434.9878976376,
+  "5": 968619.8669826069,
+  "10": 971983.2726731647,
+  "20": 986170.4009147675,
+  "30": 989279.7343097134
  },
  "price_index_12m": 0.055068371111195,
  "rows_written": 181711,
- "csv": "valuation_team-name-here.csv"
+ "csv": "valuation_team-name-here.csv",
+ "exo": {
+  "osm": true,
+  "census": true,
+  "bonds": true,
+  "vg": true,
+  "on": [
+   "osm",
+   "census",
+   "bonds",
+   "vg"
+  ]
+ },
+ "exo_features": [
+  "osm_km_rail",
+  "osm_km_light_rail",
+  "osm_km_supermarket",
+  "osm_supermarket_n_500m",
+  "osm_km_park",
+  "osm_km_school",
+  "osm_school_n_1000m",
+  "osm_km_main_road",
+  "cen_median_age_persons",
+  "cen_median_mortgage_repay_monthly",
+  "cen_median_tot_prsnl_inc_weekly",
+  "cen_median_rent_weekly",
+  "cen_median_tot_fam_inc_weekly",
+  "cen_average_num_psns_per_bedroom",
+  "cen_median_tot_hhd_inc_weekly",
+  "cen_average_household_size"
+ ],
+ "vg_sales_merged": true
 }

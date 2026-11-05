@@ -23,7 +23,15 @@ Two estimates for every flat in the City of Sydney, from one pipeline:
 ## The data
 
 Microburbs Hackathon supplied files and API (City of Sydney key), used on the day only and not
-included in this repo. Full credits in `report.html`. TODO: list any open data we added.
+included in this repo. Free outside data, used only if our held-out check shows it helps
+(`outputs/exo_ablation.json`), and never included in this repo:
+
+- OpenStreetMap as at 31 July 2026 (© OpenStreetMap contributors, ODbL): distance to transport, shops, parks, main roads.
+- ABS Census 2021 by SA1 (© Commonwealth of Australia, CC BY 4.0): local median rent, income, household size.
+- NSW Fair Trading rental bond lodgements: new-lease rents by postcode and bedrooms.
+- NSW Valuer General bulk sales (contains property sales information provided under licence from the Valuer General NSW).
+
+Full credits in `report.html`. TODO: delete any source the final model does not use.
 
 ## The clever step
 

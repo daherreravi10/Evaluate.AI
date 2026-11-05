@@ -1,0 +1,33 @@
+{
+ "quick": true,
+ "scores": {
+  "rents": {
+   "none": 48.54988029041317,
+   "all": 48.62502665504837,
+   "all minus osm": 49.15938263275223,
+   "all minus census": 49.35463013060075,
+   "all minus bonds": 48.88461204770249
+  },
+  "valuation": {
+   "none": 0.5830648872526462,
+   "all": 0.6028531983433042,
+   "all minus osm": 0.6152784169351128,
+   "all minus census": 0.5977910722503451,
+   "all minus vg": 0.587666820064427
+  }
+ },
+ "verdict": {
+  "rents": {
+   "use_outside_data": false,
+   "osm": false,
+   "census": false,
+   "bonds": false
+  },
+  "valuation": {
+   "use_outside_data": true,
+   "osm": false,
+   "census": false,
+   "vg": true
+  }
+ }
+}

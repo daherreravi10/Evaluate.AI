@@ -13,6 +13,7 @@ import pandas as pd
 
 from . import asof, config as C
 from .features import add_keys, snapshot_features
+from .exo import build as exo
 from .loaders import load, merge_api_events
 from .metrics import bootstrap_ci, rent_scores
 from .model import build, fit, importance, snapshots_before
@@ -36,6 +37,7 @@ def prepare():
         flats = flats.merge(blocks[["mb", "block_growth", "people_per_home"]], on="mb", how="left")
     except FileNotFoundError:
         flats["block_growth"] = flats["people_per_home"] = np.nan
+    flats = pd.concat([flats, exo.static(flats)], axis=1)   # OSM + Census, if present
 
     lea = asof.until(load("rents_leases"), C.RENT_CUTOFF, name="past leases")
     lea = merge_api_events(lea, "rents", "rent", C.RENT_CUTOFF)
@@ -52,8 +54,15 @@ def feature_frame(flats, lea, s):
     rec = lea[(lea.date < s) & (lea.date >= s - pd.DateOffset(years=1))]
     rec = rec.merge(flats[["gnaf_id", "suburb", "bed"]], on="gnaf_id")
     sbc = rec.groupby(["suburb", "bed", "car"]).price.median()
-    X = pd.concat([flats[STATIC], F], axis=1)
+    B = exo.snapshot(flats, s, "rents")                     # rental bonds, if present
+    if "bond_pc_bed_lmed" in B:
+        B["bond_rel"] = B.bond_pc_bed_lmed - F.base_ladj
+    X = pd.concat([flats[static_cols(flats)], F, B], axis=1)
     return X, sbc, idx
+
+
+def static_cols(flats) -> list[str]:
+    return STATIC + [c for c in flats.columns if c.startswith(("osm_", "cen_"))]
 
 
 def rows_for(flats, lea, s, we):
@@ -79,7 +88,7 @@ def predict_both(model, X, features):
     return out[1.0], out[0.0]
 
 
-def run(quick: bool = False) -> dict:
+def run(quick: bool = False, heldout_only: bool = False) -> dict:
     C.ensure_dirs()
     n = 4 if quick else C.N_SNAPSHOTS
     flats, lea = prepare()
@@ -113,6 +122,8 @@ def run(quick: bool = False) -> dict:
     pd.DataFrame({"gnaf_id": test.gnaf_id, "date": test.date, "y": y, "car": test.car,
                   "suburb": tf.suburb, "bed": tf.bed, **{k: v for k, v in methods.items()}}
                  ).to_parquet(C.OUT / "rents_holdout.parquet")
+    if heldout_only:
+        return {"heldout": held, "features": feats, "exo": exo.available()}
 
     # ---------- 2. final model: everything up to the cut-off, predict all flats ----------
     print("final model")
@@ -157,6 +168,7 @@ def run(quick: bool = False) -> dict:
         "floor_effect": floor_pd,
         "rent_index_12m": float(idx.iloc[-1] - idx.iloc[-13]),
         "rows_written": len(out), "csv": path.name,
+        "exo": exo.available(), "exo_features": [f for f in feats if f.startswith(("osm_", "cen_", "bond_"))],
     }
     (C.OUT / "metrics_rents.json").write_text(json.dumps(metrics, indent=1))
     return metrics
@@ -176,4 +188,5 @@ def floor_effect(model, X, feats, floors=(1, 5, 10, 20, 30)) -> dict:
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--heldout-only", action="store_true", help="skip the final model and CSV")
     run(**vars(ap.parse_args()))

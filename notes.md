@@ -35,4 +35,8 @@ must come from outputs/metrics_*.json or pitch/numbers.md.
 - Addresses: Open G-NAF © Geoscape Australia, licensed by the Commonwealth of Australia.
 - 2021 Census block counts: ABS, © Commonwealth of Australia, CC BY 4.0.
 - API client behaviour follows the organisers' demo client (github.com/David-Mib/microburbs-hackathon-demos, MIT).
-- Add every other dataset used, with its licence.
+- Map data © OpenStreetMap contributors, ODbL 1.0 (https://www.openstreetmap.org/copyright). Snapshot as at 31 July 2026.
+- ABS Census 2021 General Community Profile (G02, SA1) and ASGS Edition 3 Mesh Block allocation file: © Commonwealth of Australia, CC BY 4.0.
+- Rental bond lodgement data: NSW Fair Trading (nsw.gov.au). Files published before each snapshot only.
+- Contains property sales information provided under licence from the Valuer General New South Wales (CC BY-NC-ND 4.0, non-commercial, not republished).
+- Delete any line above for a source the final model does not use (see outputs/exo_ablation.json).

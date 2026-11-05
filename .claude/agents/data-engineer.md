@@ -16,3 +16,9 @@ On a new file or endpoint, in this order:
 
 Never call the API outside `src/client.py`. Never loop over all flats. Never print the key.
 If an endpoint is slow, returns 429 or 403, stop and tell the human.
+
+Outside data (src/exo/): after `python -m src.exo.build`, check each source's printout (rows,
+date range, match rate for VG). A VG match rate under ~60% means the address normaliser in
+src/exo/common.py needs a look: print 20 unmatched VG keys next to the nearest input keys.
+Then run `python scripts/exo_ablation.py --each` and switch off what does not help with
+EXO_SOURCES. Never commit anything under data/exo/.

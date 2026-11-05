@@ -201,6 +201,18 @@ def build() -> str:
         p = C.OUT / f"metrics_{task}.json"
         if p.exists():
             parts.append(fn(json.loads(p.read_text())))
+    ab = C.OUT / "exo_ablation.json"
+    if ab.exists():
+        a = json.loads(ab.read_text())
+        rows = []
+        for task, r in a["scores"].items():
+            for name, v in r.items():
+                rows.append([("Task 4 rents" if task == "rents" else "Task 5 values"), name,
+                             f"${v:.1f}/wk" if task == "rents" else f"{v:.1%}"])
+        parts.append("<h2>Outside data: did it help?</h2><p>Same held-out sets, with and without each "
+                     "free source" + (" (quick runs, 4 snapshots)" if a.get("quick") else "") +
+                     ". A source stays only if it beats noise.</p>" +
+                     _table(rows, ["task", "sources", "held-out score"]))
     body = "\n".join(parts)
     warn = '<p class="warn"><b>MOCK DATA.</b> These numbers come from synthetic data and mean nothing. ' \
            'Re-run on the real files.</p>' if mock else ""

@@ -13,6 +13,7 @@ import pandas as pd
 
 from . import asof, config as C
 from .features import add_keys, snapshot_features
+from .exo import build as exo, enabled as exo_enabled, vg
 from .loaders import building_key, floor_from_unit, load, merge_api_events
 from .metrics import bootstrap_ci, value_scores
 from .model import build, fit, importance, snapshots_before
@@ -29,6 +30,7 @@ def prepare():
     flats["suburb_code"] = flats.suburb.astype("category").cat.codes
     flats["block_code"] = flats.block_type.astype("category").cat.codes
     flats["is_flat"] = ~flats.address.fillna("").str.upper().str.contains(r"\b(?:SHOP|OFFICE)\b")
+    flats = pd.concat([flats, exo.static(flats)], axis=1)   # OSM + Census, if present
 
     sales = asof.until(load("value_sales"), C.VALUE_CUTOFF, name="past sales")
     sales = merge_api_events(sales, "valuation", "sale", C.VALUE_CUTOFF)
@@ -36,6 +38,10 @@ def prepare():
     typ = sales["type"].fillna("Sold").astype(str).str.lower()
     sold = sales[typ.str.startswith("sold")]
     asking = sales[typ.str.contains("sale") & ~typ.str.startswith("sold")]
+    sold = sold.assign(src="file")
+    if exo_enabled("vg"):
+        sold = vg.merge(sold, C.VALUE_CUTOFF)                # Valuer General sales, if present
+        sold["src"] = sold["src"].fillna("vg")               # VG rows train, never score
     try:
         rep = asof.until(load("value_repeat"), C.VALUE_CUTOFF, "date_2", name="repeat pairs").dropna(
             subset=["date_1", "price_1", "date_2", "price_2"])
@@ -49,7 +55,8 @@ def prepare():
 
 def feature_frame(flats, sold, asking, rep, s):
     F, idx = snapshot_features(flats, sold, s, pairs=rep, asking=asking)
-    return pd.concat([flats[STATIC], F], axis=1), idx
+    cols = STATIC + [c for c in flats.columns if c.startswith(("osm_", "cen_"))]
+    return pd.concat([flats[cols], F], axis=1), idx
 
 
 def rows_for(flats, sold, asking, rep, s, we, scored_only=False):
@@ -60,6 +67,7 @@ def rows_for(flats, sold, asking, rep, s, we, scored_only=False):
     t = t[flats.is_flat.to_numpy()[pos[t.gnaf_id].to_numpy()]]
     if scored_only:  # mimic the private judging set: confirmed flats under $1.2M
         t = t[t.price < C.VALUE_SCORE_MAX_PRICE]
+        t = t[t.get("src", "file") == "file"]  # same test set with or without outside data
     R = X.loc[pos[t.gnaf_id].to_numpy()].reset_index(drop=True)
     R["y"] = np.log(t.price.to_numpy())
     R["price"] = t.price.to_numpy()
@@ -68,7 +76,7 @@ def rows_for(flats, sold, asking, rep, s, we, scored_only=False):
     return R
 
 
-def run(quick: bool = False, judging_cap: bool = False) -> dict:
+def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = False) -> dict:
     C.ensure_dirs()
     n = 4 if quick else C.N_SNAPSHOTS
     flats, sold, asking, rep = prepare()
@@ -115,6 +123,8 @@ def run(quick: bool = False, judging_cap: bool = False) -> dict:
                   "has_last": test.own_last_ladj.notna().to_numpy(), **methods}
                  ).to_parquet(C.OUT / "valuation_holdout.parquet")
 
+    if heldout_only:
+        return {"heldout": held, "features": feats, "exo": exo.available()}
     print("final model")
     s_final = cut + pd.Timedelta(days=1)
     train_f = build(snapshots_before(s_final, n), mk, s_final)
@@ -154,6 +164,8 @@ def run(quick: bool = False, judging_cap: bool = False) -> dict:
         "floor_effect": floor_effect(model_f, Xf, feats),
         "price_index_12m": float(idx.iloc[-1] - idx.iloc[-13]),
         "rows_written": len(out), "csv": path.name,
+        "exo": exo.available(), "exo_features": [f for f in feats if f.startswith(("osm_", "cen_"))],
+        "vg_sales_merged": exo_enabled("vg") and vg.OUT.exists(),
     }
     (C.OUT / "metrics_valuation.json").write_text(json.dumps(metrics, indent=1))
     return metrics
@@ -173,4 +185,5 @@ if __name__ == "__main__":
     ap.add_argument("--quick", action="store_true")
     ap.add_argument("--judging-cap", action="store_true",
                     help="cap values at the held-out best cap (only sales < $1.2M are scored)")
+    ap.add_argument("--heldout-only", action="store_true", help="skip the final model and CSV")
     run(**vars(ap.parse_args()))

@@ -11,6 +11,9 @@ tell the story. A perfect CSV at 3:05 does not count.
 - [ ] Create an empty **public** GitHub repo and give everyone access.
 - [ ] On your laptop: `pip install -r requirements.txt`, then `python scripts/make_mock_data.py` and
       `bash scripts/run_all.sh --quick`. If it finishes cleanly on mock data, only the files change on Saturday.
+- [ ] **Outside data, tonight** (needs internet, not the key): `python scripts/fetch_exo.py`, then
+      `python -m src.exo.build`. Anything that fails prints where to download it by hand into
+      `data/exo/raw/<source>/`. Copy the whole `data/exo/` folder to every laptop (never to the repo).
 - [ ] Try `streamlit run app/app.py` and record 10 s of screen to check the recorder works.
 - [ ] Email Luke (a written answer removes the risk):
   1. May we use a *For Sale* advert dated before 31 August for a flat that sold after it?
@@ -45,6 +48,7 @@ tell the story. A perfect CSV at 3:05 does not count.
 | 11:20 | Delete `data/supplied/MOCK_DATA_DO_NOT_USE_FOR_PITCH.txt` and `data/mock_hidden/`. Run `python -m src.rents --quick` and `python -m src.valuation --quick` | 1 |
 | 11:40 | **First real version**: `bash scripts/run_all.sh`. Commit both CSVs + `report.html`. | 1 |
 | 11:40–1:00 | One change at a time, measured on the held-out check. Log what did not work. | 2, 3 |
+| 11:45 | `python scripts/exo_ablation.py --each` (~15 min, in parallel): keep only the outside sources that help. Switch the rest off with `EXO_SOURCES=...` | 1 |
 | 11:45 | Optional, in parallel: `python scripts/api_history.py --task rents --limit 3000` (~6 min) and re-run. Keep it only if the held-out score improves | 1 |
 | 11:40–1:00 | Read `outputs/metrics_*.json` and pick the 2–3 findings | 4 |
 | **1:00** | **Push valid CSVs** (`python -m src.validate` green) and `report.html`. This is already a hand-in. | 1 |
@@ -69,6 +73,6 @@ tell the story. A perfect CSV at 3:05 does not count.
 ## Non-negotiable rules
 
 1. Task 4: nothing dated after **2026-07-31**. Task 5: nothing after **2026-08-31**. The API does not filter by date.
-2. Never in the repo: the key, the supplied files, API output, anything in `data/`.
+2. Never in the repo: the key, the supplied files, API output, outside data, anything in `data/`.
 3. Every pitch number comes from `outputs/metrics_*.json` and is logged in `pitch/numbers.md`.
 4. Task 5 is scored on 227 sales: differences of a few points are luck. Do not chase them.

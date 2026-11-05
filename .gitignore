@@ -12,3 +12,4 @@ outputs/*
 !outputs/rents_*.csv
 !outputs/valuation_*.csv
 !outputs/metrics_*.json
+!outputs/exo_ablation.json
