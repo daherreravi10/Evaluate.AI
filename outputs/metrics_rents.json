@@ -3,9 +3,9 @@
  "cutoff": "2026-07-31",
  "split": "2026-05-01",
  "horizon_months": 2,
- "snapshots": 12,
- "train_rows_holdout": 33248,
- "train_rows_final": 32941,
+ "snapshots": 4,
+ "train_rows_holdout": 10785,
+ "train_rows_final": 10914,
  "test_rows": 4135,
  "test_from": "2026-05-01",
  "test_to": "2026-07-31",
@@ -33,127 +33,127 @@
   },
   "Our model (LightGBM, snapshots)": {
    "n": 4135,
-   "median_abs_error": 47.27558792428499,
-   "share_within_100": 0.8239419588875453,
-   "r2": 0.8704768610310547,
+   "median_abs_error": 48.54988029041317,
+   "share_within_100": 0.8203143893591294,
+   "r2": 0.8610446457957147,
    "blank": 0
   }
  },
  "model_median_error_ci95": [
-  45.84258802439979,
-  49.023160924448234
+  46.74883250524316,
+  50.152298084517
  ],
  "importance": [
   {
    "feature": "own_last_ladj_rel",
-   "share": 0.2295414416701478
+   "share": 0.17336170286704192
   },
   {
    "feature": "bldg_bed_med_rel",
-   "share": 0.11577951832362887
+   "share": 0.08992313536661561
   },
   {
    "feature": "bldg_med",
-   "share": 0.07443330916870242
-  },
-  {
-   "feature": "bldg_bed_med",
-   "share": 0.038829436993838194
-  },
-  {
-   "feature": "own_last_ladj",
-   "share": 0.037706597456044225
-  },
-  {
-   "feature": "own_last_age_y",
-   "share": 0.035563728792809016
-  },
-  {
-   "feature": "sub_med",
-   "share": 0.03371563414089597
+   "share": 0.059752375949932
   },
   {
    "feature": "block_homes_2026",
-   "share": 0.03359249747170327
+   "share": 0.04643614606613943
   },
   {
-   "feature": "anchor_ladj",
-   "share": 0.03112317829783987
+   "feature": "own_last_age_y",
+   "share": 0.044255401896794604
+  },
+  {
+   "feature": "bldg_bed_med",
+   "share": 0.03790549121501662
+  },
+  {
+   "feature": "own_last_ladj",
+   "share": 0.03716120701127773
   },
   {
    "feature": "people_per_home",
-   "share": 0.025467737454084857
+   "share": 0.03458236523075237
   },
   {
    "feature": "block_growth",
-   "share": 0.025206266145923195
+   "share": 0.03259105918939828
   },
   {
    "feature": "mb_med",
-   "share": 0.024214260789482116
+   "share": 0.029838450019461626
+  },
+  {
+   "feature": "sub_med",
+   "share": 0.028688788235438675
   },
   {
    "feature": "near_dist_km",
-   "share": 0.020100808753543607
-  },
-  {
-   "feature": "floor_level",
-   "share": 0.020037306189499397
+   "share": 0.027665318173805156
   },
   {
    "feature": "near_med",
-   "share": 0.020019961922584793
+   "share": 0.027391788180695813
+  },
+  {
+   "feature": "latitude",
+   "share": 0.02471619831599312
+  },
+  {
+   "feature": "longitude",
+   "share": 0.02455154560900787
   }
  ],
- "parking_premium_median": 26.5,
+ "parking_premium_median": 25.5,
  "parking_premium_by_bed": {
-  "0": 16.0,
+  "0": 16.5,
   "1": 24.0,
-  "2": 30.0,
-  "3": 30.0,
-  "4": 29.5
+  "2": 28.5,
+  "3": 30.5,
+  "4": 31.0
  },
  "parking_premium_by_suburb": {
-  "The Rocks (NSW)": 22.5,
+  "Centennial Park (NSW)": 23.0,
+  "Eveleigh (NSW)": 23.0,
   "Paddington (NSW)": 23.0,
-  "Barangaroo (NSW)": 24.0,
-  "Pyrmont (NSW)": 24.0,
-  "Sydney (NSW)": 24.5,
-  "Centennial Park (NSW)": 24.5,
-  "Darlinghurst (NSW)": 25.0,
-  "Eveleigh (NSW)": 25.0,
-  "Rushcutters Bay (NSW)": 25.0,
+  "Forest Lodge (NSW)": 23.5,
+  "Sydney (NSW)": 23.5,
+  "Glebe (NSW)": 23.5,
+  "Darlinghurst (NSW)": 24.0,
+  "St Peters (NSW)": 24.0,
+  "Rushcutters Bay (NSW)": 24.5,
+  "Dawes Point (NSW)": 24.5,
+  "The Rocks (NSW)": 24.5,
+  "Beaconsfield (NSW)": 24.75,
+  "Rosebery (NSW)": 25.0,
+  "Moore Park (NSW)": 25.0,
   "Millers Point (NSW)": 25.0,
-  "Potts Point (NSW)": 25.5,
-  "Rosebery (NSW)": 25.5,
-  "Beaconsfield (NSW)": 25.5,
-  "Forest Lodge (NSW)": 25.5,
-  "Dawes Point (NSW)": 25.5,
-  "Annandale (NSW)": 25.5,
-  "St Peters (NSW)": 25.5,
-  "Moore Park (NSW)": 26.0,
-  "Chippendale (NSW)": 26.5,
+  "Haymarket (NSW)": 25.0,
+  "Waterloo (NSW)": 25.0,
+  "Pyrmont (NSW)": 25.5,
+  "Alexandria (NSW)": 25.5,
+  "Annandale (NSW)": 26.0,
   "Camperdown (NSW)": 26.5,
-  "Haymarket (NSW)": 26.5,
-  "Woolloomooloo (NSW)": 27.0,
-  "Elizabeth Bay (NSW)": 27.5,
-  "Glebe (NSW)": 27.5,
-  "Waterloo (NSW)": 27.5,
+  "Barangaroo (NSW)": 26.5,
+  "Woolloomooloo (NSW)": 26.5,
+  "Darlington (NSW)": 26.5,
+  "Ultimo (NSW)": 27.0,
+  "Potts Point (NSW)": 27.0,
+  "Chippendale (NSW)": 27.0,
+  "Zetland (NSW)": 27.5,
   "Redfern (NSW)": 28.0,
-  "Alexandria (NSW)": 28.5,
-  "Zetland (NSW)": 30.0,
-  "Surry Hills (NSW)": 30.5,
+  "Elizabeth Bay (NSW)": 28.0,
+  "Surry Hills (NSW)": 28.5,
   "Newtown (NSW)": 30.5,
-  "Darlington (NSW)": 30.5,
-  "Ultimo (NSW)": 31.0,
-  "Erskineville (NSW)": 39.5
+  "Erskineville (NSW)": 36.5
  },
  "floor_effect": {
-  "1": 788.9664297424483,
-  "5": 791.3023249168887,
-  "10": 796.5017196538915,
-  "20": 805.7864405292596,
-  "30": 821.2267641784365
+  "1": 791.3649322727367,
+  "5": 793.066974370543,
+  "10": 800.0758217796885,
+  "20": 808.5650421995144,
+  "30": 823.2076009147867
  },
  "rent_index_12m": 0.025360252424884655,
  "rows_written": 65777,

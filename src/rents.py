@@ -13,7 +13,7 @@ import pandas as pd
 
 from . import asof, config as C
 from .features import add_keys, snapshot_features
-from .loaders import load
+from .loaders import load, merge_api_events
 from .metrics import bootstrap_ci, rent_scores
 from .model import build, fit, importance, snapshots_before
 
@@ -38,6 +38,7 @@ def prepare():
         flats["block_growth"] = flats["people_per_home"] = np.nan
 
     lea = asof.until(load("rents_leases"), C.RENT_CUTOFF, name="past leases")
+    lea = merge_api_events(lea, "rents", "rent", C.RENT_CUTOFF)
     lea = lea[(lea.price >= 100) & (lea.price <= 15_000)]
     lea["car"] = (lea.car_spaces > 0).astype(float).where(lea.car_spaces.notna())
     lea = lea.merge(flats[["gnaf_id", "car_space"]], on="gnaf_id", how="left")

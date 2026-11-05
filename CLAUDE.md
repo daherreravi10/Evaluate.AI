@@ -47,7 +47,7 @@ src/features.py   snapshot features: own history, building, block, suburb, neigh
 src/model.py      monthly snapshots -> LightGBM (Huber on log price) starting from the anchor (init_score)
 src/rents.py      Task 4 pipeline      src/valuation.py  Task 5 pipeline
 src/metrics.py    judges' metrics      src/validate.py   CSV contract check
-src/client.py     cached, throttled API client (Bearer key from .env)
+src/client.py     cached, throttled API client, same behaviour as the official one (python -m src.client = smoke test)
 src/report.py     report.html          notes.md          the team's words for the report
 app/app.py        Streamlit demo
 ```
@@ -58,9 +58,18 @@ app/app.py        Streamlit demo
 - Valuation input: `bedrooms` blank for 132,217; ~6,700 SHOP/OFFICE addresses (never scored);
   `unit_number` blank for 12,070; floor is not given -> we parse it from the unit number (315 -> 3).
 - Judging parking: the column matching the advert's parking is scored; if blank, the input's parking.
-- API: base `https://api-ht.microburbs.com.au`, ~10 req/s per key, "no data" is HTTP 200 with
-  `data: null`, outside coverage is 403. `basics/all` has NO as-at date: do not use it for Task 5.
-  `/suburbs/{name}/listings/for-rent` is live (after the cut-off): never use it for Task 4.
+- API (getting-started page + official demos github.com/David-Mib/microburbs-hackathon-demos):
+  base `https://api-ht.microburbs.com.au`, header `Authorization: Bearer <key>`, ~10 req/s per key,
+  "no data" = HTTP 200 `{"data": null, "available": false, "reason", "message"}`, 403 = outside the
+  City of Sydney OR a retired GNAF id, 429 = wait (Retry-After) and retry. Suburb names as the API
+  writes them, e.g. `Glebe (NSW)`. Docs with a try-it button: https://api-ht.microburbs.com.au/docs
+- Useful property endpoints: `history/all` (sale_history + rent_history lists), `sale-history`,
+  `basics/all`, `profile`, `comparables/recent-sales-nearby`. Suburb: `sales/recent?limit=&offset=`.
+  There is NO `rent-history` endpoint: rent history comes from `history/all`.
+- The API has NO as-of switch. `basics/all` has no as-at date: do not use it for Task 5.
+  `/suburbs/{name}/listings/for-rent` and `for-sale` are live (after the cut-off): never use them.
+- Optional extra data: `python scripts/api_history.py --task rents|valuation --limit N` saves filtered
+  history to data/cache/; the pipelines merge it automatically. Keep it only if the held-out score improves.
 
 ## Rules for agents
 1. NEVER guess a column. On the day, print `df.columns` and 3 rows of each supplied file, then fix

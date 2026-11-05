@@ -34,4 +34,5 @@ must come from outputs/metrics_*.json or pitch/numbers.md.
 - Data © Microburbs. Estimates are automated and indicative only.
 - Addresses: Open G-NAF © Geoscape Australia, licensed by the Commonwealth of Australia.
 - 2021 Census block counts: ABS, © Commonwealth of Australia, CC BY 4.0.
+- API client behaviour follows the organisers' demo client (github.com/David-Mib/microburbs-hackathon-demos, MIT).
 - Add every other dataset used, with its licence.

@@ -13,7 +13,7 @@ import pandas as pd
 
 from . import asof, config as C
 from .features import add_keys, snapshot_features
-from .loaders import building_key, floor_from_unit, load
+from .loaders import building_key, floor_from_unit, load, merge_api_events
 from .metrics import bootstrap_ci, value_scores
 from .model import build, fit, importance, snapshots_before
 
@@ -31,6 +31,7 @@ def prepare():
     flats["is_flat"] = ~flats.address.fillna("").str.upper().str.contains(r"\b(?:SHOP|OFFICE)\b")
 
     sales = asof.until(load("value_sales"), C.VALUE_CUTOFF, name="past sales")
+    sales = merge_api_events(sales, "valuation", "sale", C.VALUE_CUTOFF)
     sales = sales[(sales.price >= 50_000) & (sales.price <= 20_000_000)]
     typ = sales["type"].fillna("Sold").astype(str).str.lower()
     sold = sales[typ.str.startswith("sold")]

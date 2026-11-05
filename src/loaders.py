@@ -66,3 +66,26 @@ def floor_from_unit(unit_number: pd.Series) -> pd.Series:
     n = pd.to_numeric(s, errors="coerce")
     floor = np.where(n >= 100, n // 100, np.nan)
     return pd.Series(floor, index=unit_number.index).where(lambda x: x <= 80)
+
+
+def merge_api_events(events: pd.DataFrame, task: str, kind: str, cutoff: str) -> pd.DataFrame:
+    """Add rows from data/cache/api_events_<task>.parquet (scripts/api_history.py), if present.
+
+    kind: "rent" for Task 4 adverts, "sale" for Task 5. Rows already in the supplied file
+    (same gnaf_id, date, price) are dropped. The as-of cut-off is re-applied here.
+    """
+    p = C.CACHE / f"api_events_{task}.parquet"
+    if not p.exists():
+        return events
+    api = pd.read_parquet(p)
+    api = api[(api["kind"] == kind) & api.price.notna() & api.date.notna()]
+    api = api[api.date <= pd.Timestamp(cutoff)]
+    keep = [c for c in events.columns if c in api.columns] or ["gnaf_id", "date", "price"]
+    api = api[keep].copy()
+    if "type" in events.columns and "type" in api.columns:
+        api["type"] = api["type"].fillna("Sold")
+    key = ["gnaf_id", "date", "price"]
+    seen = pd.MultiIndex.from_frame(events[key])
+    api = api[~pd.MultiIndex.from_frame(api[key]).isin(seen)].drop_duplicates(key)
+    print(f"[loaders] merged {len(api):,} new {kind} rows from the API cache")
+    return pd.concat([events, api], ignore_index=True)

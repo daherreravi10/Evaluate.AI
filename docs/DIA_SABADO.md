@@ -40,10 +40,12 @@ y en contar la historia. Un CSV perfecto a las 3:05 no cuenta.
 | 10:00 | Mesa, café, wifi, clonar repo, `pip install` | todos |
 | 10:30 | Bienvenida y reto: escuchar si cambia alguna regla de las tareas 4 y 5 | todos |
 | 11:00 | Llega la clave y los archivos por correo → `data/supplied/`, clave en `.env` | 1 |
+| 11:02 | `python -m src.client`: prueba la clave (ping, suburbios y el historial de un depto). Si falla, revisar `.env` | 1 |
 | 11:05 | Pedir a Claude Code: *"usa data-engineer: imprime columnas, tipos, rango de fechas y 3 filas de cada archivo en data/supplied y corrige SCHEMA en src/config.py"* | 1 |
 | 11:20 | Borrar `data/supplied/MOCK_DATA_DO_NOT_USE_FOR_PITCH.txt` y `data/mock_hidden/`. `python -m src.rents --quick` y `python -m src.valuation --quick` | 1 |
 | 11:40 | **Primera versión real**: `bash scripts/run_all.sh`. Commit de los dos CSV + `report.html`. | 1 |
 | 11:40–1:00 | Un cambio a la vez, medido con el *held-out*. Anotar lo que no funcionó. | 2, 3 |
+| 11:45 | Opcional, en paralelo: `python scripts/api_history.py --task rents --limit 3000` (~6 min) y volver a correr. Se queda solo si mejora el *held-out* | 1 |
 | 11:40–1:00 | Mirar los resultados en `outputs/metrics_*.json` y elegir los 2–3 hallazgos | 4 |
 | **1:00** | **Subir CSV válidos** (`python -m src.validate` en verde) y `report.html`. Esto ya es una entrega. | 1 |
 | 1:00–2:00 | Últimas mejoras; a la 1:45 se congela el modelo | 2, 3 |
@@ -60,7 +62,8 @@ y en contar la historia. Un CSV perfecto a las 3:05 no cuenta.
 | El pipeline completo tarda demasiado | `--quick` (4 snapshots en vez de 12) |
 | El modelo no supera al mejor baseline en el *held-out* | Entregar el baseline ganador (la tabla lo muestra) y contarlo con honestidad en el informe |
 | Falta tiempo para la tarea 5 | Entregar la versión `--quick`; los blancos cuentan como error, un valor razonable no |
-| La API va lenta o da 429 | No hace falta: el kit funciona solo con los archivos entregados |
+| La API va lenta o da 429 | No hace falta: el kit funciona solo con los archivos entregados. El cliente ya reintenta solo |
+| La API da 403 para un `gnaf_id` | Normal: fuera de la City o ID retirado. `client.safe()` devuelve None y sigue |
 | Video > 95 MB | `ffmpeg -i in.mp4 -vf scale=-2:1080 -c:v libx264 -preset veryfast -crf 28 -c:a aac out.mp4` |
 
 ## Reglas que no se negocian
