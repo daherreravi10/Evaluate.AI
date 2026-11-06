@@ -132,7 +132,7 @@ def main() -> None:
     for name, ok, note in RESULTS:
         print(f"{'PASS' if ok else 'FAIL':5s} {name:34s} {note}")
     print("=" * 72)
-    must = [r for r in RESULTS if not r[1] and not r[0].startswith("outside data")]
+    must = [r for r in RESULTS if not r[1] and not r[0].startswith(("outside data", "exo_for"))]
     print("Ready for tomorrow." if not must else "Fix the FAIL lines above before tomorrow.")
     print("Outside data is optional: the pipeline runs without it.")
 

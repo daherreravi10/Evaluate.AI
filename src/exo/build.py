@@ -43,7 +43,7 @@ def snapshot(flats: pd.DataFrame, s: pd.Timestamp, task: str) -> pd.DataFrame:
 
 
 def available() -> dict:
-    return {"osm": osm.OUT.exists(), "census": census.OUT.exists(),
+    return {"osm": osm.OUT.exists(), "places": places.OUT.exists(), "census": census.OUT.exists(),
             "bonds": bonds.OUT.exists(), "vg": vg.OUT.exists(),
             "on": [x for x in ("osm", "census", "bonds", "vg") if enabled(x)]}
 

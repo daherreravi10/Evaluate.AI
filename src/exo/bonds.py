@@ -35,12 +35,38 @@ def urls(first: str = "2023-01", last: str = "2026-06") -> list[tuple[str, str]]
     return out
 
 
+PAGE = "https://www.nsw.gov.au/housing-and-construction/rental-forms-surveys-and-data/rental-bond-data"
+
+
+def page_links(first: str, last: str) -> list[tuple[str, str]]:
+    """The real monthly links, read from the official page (older months can sit in other folders)."""
+    import re
+
+    import requests
+
+    html = requests.get(PAGE, timeout=60, headers={"User-Agent": "microburbs-hackathon-team"}).text
+    out = {}
+    for href in re.findall(r'href="([^"]*rentalbond_lodgements_([a-z]+)_(\d{4})\.xlsx)"', html, re.I):
+        url, month, year = href
+        if month.lower() not in MONTHS:
+            continue
+        per = pd.Period(f"{year}-{MONTHS.index(month.lower()) + 1:02d}", "M")
+        if pd.Period(first, "M") <= per <= pd.Period(last, "M"):
+            full = url if url.startswith("http") else "https://www.nsw.gov.au" + url
+            out[full.rsplit("/", 1)[-1]] = full
+    return [(u, n) for n, u in sorted(out.items())]
+
+
 def download(first: str = "2023-01", last: str = "2026-06") -> None:
     import requests
 
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     ok = 0
-    for url, name in urls(first, last):
+    try:
+        targets = page_links(first, last) or urls(first, last)
+    except Exception:  # noqa: BLE001
+        targets = urls(first, last)
+    for url, name in targets:
         dest = RAW_DIR / name
         if dest.exists():
             ok += 1

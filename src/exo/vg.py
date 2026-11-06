@@ -42,6 +42,7 @@ COLS = ["record_type", "district", "property_id", "sale_counter", "download_dt",
         "settlement_date", "price", "zoning", "nature", "purpose", "strata_lot", "component",
         "sale_code", "pct_interest", "dealing_no"]
 LEGACY = "https://www.valuergeneral.nsw.gov.au/__psi"
+PORTAL = "https://valuation.property.nsw.gov.au/embed/propertySalesInformation"
 
 
 def download(years=range(2015, 2026), cutoff: str = C.VALUE_CUTOFF) -> None:
@@ -52,6 +53,21 @@ def download(years=range(2015, 2026), cutoff: str = C.VALUE_CUTOFF) -> None:
     targets = [(f"{LEGACY}/yearly/{y}.zip", f"{y}.zip") for y in years]
     mondays = pd.date_range("2026-01-05", cutoff, freq="W-MON")
     targets += [(f"{LEGACY}/weekly/{d:%Y%m%d}.zip", f"{d:%Y%m%d}.zip") for d in mondays]
+    try:  # prefer the links the official portal shows, when it lists them
+        page = requests.get(PORTAL, timeout=60, headers={"User-Agent": "microburbs-hackathon-team"}).text
+        found = {}
+        for href in re.findall(r'href="([^"]+?(\d{4}|\d{8})\.zip)"', page):
+            url, stamp = href
+            full = url if url.startswith("http") else requests.compat.urljoin(PORTAL, url)
+            keep = (len(stamp) == 4 and int(stamp) in years) or \
+                   (len(stamp) == 8 and "20260101" <= stamp <= pd.Timestamp(cutoff).strftime("%Y%m%d"))
+            if keep:
+                found[f"{stamp}.zip"] = full
+        if found:
+            targets = [(u, n) for n, u in sorted(found.items())]
+            print(f"  vg: {len(targets)} files listed on the portal")
+    except Exception:  # noqa: BLE001
+        pass
     got = 0
     for url, name in targets:
         dest = RAW_DIR / name
