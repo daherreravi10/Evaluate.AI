@@ -23,7 +23,7 @@ from openpyxl import Workbook
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src import config as C  # noqa: E402
-from src.exo import bonds, census, osm, vg  # noqa: E402
+from src.exo import bonds, census, osm, places, vg  # noqa: E402
 from src.exo.common import BBOX, RAW, ensure  # noqa: E402
 from src.loaders import load  # noqa: E402
 
@@ -196,10 +196,59 @@ def mock_vg() -> None:
           f"{(allv.src.isin(['late', 'hidden'])).sum():,} after the cut-off)")
 
 
+def mock_places() -> None:
+    s, w, n, e = BBOX
+    els, i = [], 0
+
+    def add(tags, area=False):
+        nonlocal i
+        i += 1
+        lat, lon = rng.uniform(s, n), rng.uniform(w, e)
+        el = {"type": "way" if area else "node", "id": 50_000 + i, "tags": tags}
+        el.update({"center": {"lat": lat, "lon": lon}} if area else {"lat": lat, "lon": lon})
+        els.append(el)
+
+    names = ["Central", "Redfern", "Town Hall", "Wynyard", "Martin Place", "Kings Cross", "Green Square",
+             "Erskineville", "St Peters", "Museum", "St James", "Circular Quay", "Edgecliff", "Newtown"]
+    for nm in names:
+        add({"railway": "station", "train": "yes", "name": f"{nm} (practice)"})
+    for nm in ["Waterloo", "Barangaroo", "Gadigal", "Crows Nest"]:
+        add({"railway": "station", "station": "subway", "name": f"{nm} Metro (practice)"})
+    for k in range(20):
+        add({"railway": "tram_stop", "name": f"Light rail stop {k + 1} (practice)"})
+    for k in range(6):
+        add({"amenity": "hospital", "name": f"Hospital {k + 1} (practice)"}, area=True)
+    for k in range(8):
+        add({"shop": "mall", "name": f"Shopping centre {k + 1} (practice)"}, area=True)
+    for k in range(50):
+        add({"shop": "supermarket", "name": f"Supermarket {k + 1}"}, area=k % 2 == 0)
+    for k in range(5):
+        add({"amenity": "ferry_terminal", "name": f"Wharf {k + 1} (practice)"})
+    for k in range(60):
+        add({"leisure": "park", "name": f"Park {k + 1}"}, area=True)
+    for k in range(30):
+        add({"amenity": "school", "name": f"School {k + 1}"}, area=True)
+    for k in range(12):
+        add({"building": "construction", "construction": rng.choice(["apartments", "office", "hotel"]),
+             "name": f"Project {k + 1} (practice)"}, area=True)
+    add({"railway": "construction", "construction": "subway", "name": "New metro line (practice)"}, area=True)
+    places.RAW_POI.write_text(json.dumps({"elements": els}))
+    stops = [{"type": "node", "id": 900_000 + k, "lat": rng.uniform(s, n), "lon": rng.uniform(w, e),
+              "tags": {"highway": "bus_stop", "name": f"Stop {k + 1}"}} for k in range(500)]
+    rels = []
+    for k, ref in enumerate(["301", "303", "309", "310", "343", "352", "370", "380", "389", "M50", "X39", "422"]):
+        mem = rng.choice(len(stops), 60, replace=False)
+        rels.append({"type": "relation", "id": 7_000 + k, "tags": {"route": "bus", "ref": ref},
+                     "members": [{"type": "node", "ref": stops[j]["id"], "role": "platform"} for j in mem]})
+    places.RAW_BUS.write_text(json.dumps({"elements": rels + stops}))
+    print(f"places: {len(els)} places, {len(stops)} bus stops, {len(rels)} routes")
+
+
 if __name__ == "__main__":
     ensure()
     RAW.mkdir(parents=True, exist_ok=True)
     mock_osm()
+    mock_places()
     mock_census()
     mock_bonds()
     mock_vg()

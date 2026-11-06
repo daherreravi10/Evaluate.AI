@@ -39,4 +39,5 @@ must come from outputs/metrics_*.json or pitch/numbers.md.
 - ABS Census 2021 General Community Profile (G02, SA1) and ASGS Edition 3 Mesh Block allocation file: © Commonwealth of Australia, CC BY 4.0.
 - Rental bond lodgement data: NSW Fair Trading (nsw.gov.au). Files published before each snapshot only.
 - Contains property sales information provided under licence from the Valuer General New South Wales (CC BY-NC-ND 4.0, non-commercial, not republished).
+- App only: map tiles © OpenStreetMap contributors © CARTO; Leaflet (BSD-2-Clause); Barlow font (SIL OFL 1.1).
 - Delete any line above for a source the final model does not use (see outputs/exo_ablation.json).

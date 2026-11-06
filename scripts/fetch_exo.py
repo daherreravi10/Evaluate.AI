@@ -13,9 +13,10 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from src.exo import bonds, census, osm, vg  # noqa: E402
+from src.exo import bonds, census, osm, places, vg  # noqa: E402
 
-SOURCES = {"osm": osm.download, "census": census.download, "bonds": bonds.download, "vg": vg.download}
+SOURCES = {"osm": osm.download, "places": places.download, "census": census.download,
+           "bonds": bonds.download, "vg": vg.download}
 
 if __name__ == "__main__":
     for name in sys.argv[1:] or list(SOURCES):

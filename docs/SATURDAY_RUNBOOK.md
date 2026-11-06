@@ -14,8 +14,11 @@ tell the story. A perfect CSV at 3:05 does not count.
 - [ ] **Outside data, tonight** (needs internet, not the key): `python scripts/fetch_exo.py`, then
       `python -m src.exo.build`. Anything that fails prints where to download it by hand into
       `data/exo/raw/<source>/`. Copy the whole `data/exo/` folder to every laptop (never to the repo).
-- [ ] Try `streamlit run app/app.py` (Kerbside, the demo app; fonts are bundled, works offline except the
-      map background) and record 10 s of screen to check the recorder works.
+- [ ] Try `streamlit run app/app.py` (Kerbside, the demo app; fonts and the map library are bundled, so it
+      works offline except the street background) and record 10 s of screen to check the recorder works.
+      Bad wifi at the venue? `KERBSIDE_BASEMAP=0 streamlit run app/app.py` drops the street background.
+- [ ] `python scripts/fetch_exo.py` now also fetches `places` (hospitals, shops, stations, bus routes,
+      construction) for "Around this flat". Then `python -m src.exo.build`.
 - [ ] Email Luke (a written answer removes the risk):
   1. May we use a *For Sale* advert dated before 31 August for a flat that sold after it?
      (The rules allow it as written, but better to confirm.)
@@ -63,7 +66,7 @@ and there is one overall ranking. So Task 5 is extra chances, as long as it neve
 | 10:00 | Table, coffee, wifi, clone the repo, `pip install` | all |
 | 10:30 | Welcome and challenge: listen for any rule change to Tasks 4 and 5 | all |
 | 11:00 | Key and files arrive by email → `data/supplied/`, key in `.env` | 1 |
-| 11:02 | `python -m src.client`: tests the key (ping, suburbs, one flat's history). If it fails, check `.env` | 1 |
+| 11:02 | `python -m src.client`: tests the key (ping, suburbs, one flat's history). If it fails, check `.env`. With the key set, the app's "Around this flat" also shows live transport and the suburb's development applications | 1 |
 | 11:05 | Ask Claude Code: *"use data-engineer: print the columns, dtypes, date range and 3 rows of every file in data/supplied and fix SCHEMA in src/config.py"* | 1 |
 | 11:15 | `python -m src.eda`: any column marked **review** (new in the real files) gets a decision and a reason in `src/decisions.py`; any **flag** is checked | 1 |
 | 11:20 | Delete `data/supplied/MOCK_DATA_DO_NOT_USE_FOR_PITCH.txt` and `data/mock_hidden/`. Run `python -m src.rents --quick` and `python -m src.valuation --quick` | 1 |

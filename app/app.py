@@ -11,6 +11,7 @@ from __future__ import annotations
 import html
 import json
 import re
+from urllib.parse import quote
 import sys
 from pathlib import Path
 
@@ -18,9 +19,11 @@ import numpy as np
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
+import streamlit.components.v1 as components
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src import config as C  # noqa: E402
+from src import neighbourhood as nb  # noqa: E402
 
 st.set_page_config(page_title="Kerbside — Sydney flats", page_icon="🅿️", layout="wide")
 
@@ -103,6 +106,26 @@ footer {{ visibility: hidden; }}
   .flat-title {{ font-size: 28px; }}
 }}
 .slot .num small {{ white-space: nowrap; }}
+.around-title {{ font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 28px; margin: 30px 0 2px; color: {INK}; }}
+.mode {{ background: #FFFFFF; border: 1px solid #DCE2DE; border-radius: 12px; padding: 16px 18px; margin-bottom: 12px; }}
+.mode h3 {{ font-size: 17px; font-weight: 600; margin: 0 0 8px; padding: 0; display: flex; align-items: center; gap: 8px; }}
+.mode ul {{ list-style: none; margin: 0; padding: 0; }}
+.mode li {{ display: flex; justify-content: space-between; gap: 12px; padding: 5px 0; border-top: 1px solid #EEF1EE; font-size: 15.5px; }}
+.mode li:first-child {{ border-top: 0; }}
+.mode li span:last-child {{ color: {MUTED}; text-align: right; white-space: nowrap; }}
+.routes {{ display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }}
+.routes span {{ background: #E3EEEA; color: #1F4F43; border-radius: 4px; padding: 1px 7px; font-size: 13.5px; font-weight: 600; }}
+.chip {{ font-style: normal; display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; color: #fff;
+        font-size: 12.5px; font-weight: 600; flex: none; }}
+.keyrow {{ display: flex; flex-wrap: wrap; gap: 6px 16px; color: {MUTED}; font-size: 14px; margin: 8px 0 4px; }}
+.keyrow span {{ display: inline-flex; align-items: center; gap: 6px; }}
+.trips {{ width: 100%; border-collapse: collapse; font-size: 15.5px; background: #fff; border: 1px solid #DCE2DE; border-radius: 12px; overflow: hidden; }}
+.trips th {{ text-align: left; color: {MUTED}; font-weight: 600; font-size: 14px; padding: 9px 14px; border-bottom: 1px solid #DCE2DE; }}
+.trips td {{ padding: 9px 14px; border-top: 1px solid #EEF1EE; }}
+.trips td.n {{ font-variant-numeric: tabular-nums; }}
+.trips a {{ color: {EUCALYPT}; font-weight: 600; text-decoration: none; }}
+.proj li {{ display: block; }}
+.proj .when {{ color: {MUTED}; font-size: 13.5px; }}
 .fine {{ color: {MUTED}; font-size: 13.5px; margin-top: 28px; }}
 </style>
 """
@@ -124,6 +147,16 @@ def load_parquet(name: str) -> pd.DataFrame | None:
 def metrics(name: str) -> dict | None:
     p = C.OUT / f"metrics_{name}.json"
     return json.loads(p.read_text()) if p.exists() else None
+
+
+def basemap() -> dict:
+    """Street map behind the dots. KERBSIDE_BASEMAP=0 turns it off (no internet at the venue)."""
+    import os
+    if os.environ.get("KERBSIDE_BASEMAP", "1") == "0":
+        blank = json.dumps({"version": 8, "sources": {}, "layers": [
+            {"id": "paper", "type": "background", "paint": {"background-color": "#E6EBE8"}}]})
+        return {"map_provider": "mapbox", "map_style": "data:application/json;charset=utf-8," + quote(blank)}
+    return {"map_provider": "carto", "map_style": pdk.map_styles.CARTO_LIGHT}
 
 
 def tidy_address(a: str, suburb: str = "") -> str:
@@ -246,6 +279,180 @@ def value_card(f: pd.Series, m: dict | None) -> str:
 <div class="big">{money(f.v_value, 1000)}</div><p>{why}{sure}</p></div>"""
 
 
+KIND_COLOR = {  # letter colour by what it is for
+    "hospital": [180, 84, 45], "mall": [61, 106, 158], "supermarket": [61, 106, 158],
+    "train": [46, 107, 91], "metro": [46, 107, 91], "light_rail": [46, 107, 91], "ferry": [46, 107, 91],
+    "bus": [46, 107, 91], "park": [94, 140, 74], "school": [94, 105, 101], "university": [94, 105, 101],
+    "construction": [237, 187, 42],
+}
+KEY = [("H", "hospital", "Hospital"), ("M", "mall", "Shopping centre"), ("S", "supermarket", "Supermarket"),
+       ("T", "train", "Train or metro"), ("L", "light_rail", "Light rail"), ("F", "ferry", "Ferry"),
+       ("E", "school", "School"), ("P", "park", "Park"), ("C", "construction", "Being built")]
+
+
+def hexc(rgb) -> str:
+    return "#%02x%02x%02x" % tuple(rgb)
+
+
+@st.cache_resource
+def leaflet_assets() -> tuple[str, str]:
+    d = Path(__file__).parent / "static" / "leaflet"
+    return (d / "leaflet.js").read_text(encoding="utf-8"), (d / "leaflet.css").read_text(encoding="utf-8")
+
+
+def leaflet_map(lat: float, lon: float, label: str, show: pd.DataFrame, buses: pd.DataFrame) -> str:
+    """Self-contained Leaflet map (library inlined, so it works offline; street tiles need internet)."""
+    js, css = leaflet_assets()
+    pts = [{"lat": r.lat, "lon": r.lon, "l": r.letter, "c": hexc(KIND_COLOR.get(r.kind, [90, 90, 90])),
+            "ink": "#1B2422" if r.kind == "construction" else "#FFFFFF", "tip": r.tip} for r in show.itertuples()]
+    bus = [{"lat": r.lat, "lon": r.lon, "tip": r.tip} for r in buses.itertuples()]
+    data = json.dumps({"lat": lat, "lon": lon, "label": label, "pts": pts, "bus": bus}).replace("</", "<\\/")
+    return f"""<!doctype html><html><head><meta charset="utf-8"><style>{css}
+html,body,#m{{margin:0;height:100%;background:#E6EBE8;font-family:Barlow,Arial,sans-serif}}
+#m{{border-radius:12px;overflow:hidden}}
+.pin{{width:24px;height:24px;border-radius:50%;border:2.5px solid #fff;display:grid;place-items:center;
+font:700 12.5px/1 Arial,Helvetica,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.35)}}
+.home{{width:20px;height:20px;border-radius:50%;background:#2F3438;border:5px solid #EDBB2A;
+box-shadow:0 1px 4px rgba(0,0,0,.4)}}
+.leaflet-tooltip{{font:13px/1.3 Barlow,Arial,sans-serif}}</style></head><body><div id="m"></div>
+<script>{js}</script><script>
+const D={data};
+const map=L.map('m',{{zoomControl:true,attributionControl:true,zoomSnap:0.25}}).setView([D.lat,D.lon],14.75);
+L.tileLayer('https://{{s}}.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}{{r}}.png',
+ {{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap contributors &copy; CARTO'}}).addTo(map);
+[[620,'10 min walk'],[310,'5 min walk']].forEach(([r,t])=>L.circle([D.lat,D.lon],{{radius:r,color:'#2F3438',
+ weight:1.2,opacity:.45,fill:false,dashArray:'4 5'}}).bindTooltip(t).addTo(map));
+D.bus.forEach(b=>L.circleMarker([b.lat,b.lon],{{radius:3.5,color:'#fff',weight:1,fillColor:'#2E6B5B',
+ fillOpacity:.75}}).bindTooltip(b.tip).addTo(map));
+D.pts.forEach(p=>L.marker([p.lat,p.lon],{{icon:L.divIcon({{className:'',iconSize:[24,24],iconAnchor:[12,12],
+ html:`<div class="pin" style="background:${{p.c}};color:${{p.ink}}">${{p.l}}</div>`}})}}).bindTooltip(p.tip).addTo(map));
+L.marker([D.lat,D.lon],{{icon:L.divIcon({{className:'',iconSize:[30,30],iconAnchor:[15,15],
+ html:'<div class="home"></div>'}}),zIndexOffset:1000}}).bindTooltip(D.label).addTo(map);
+</script></body></html>"""
+
+
+@st.cache_data
+def places_df():
+    return nb.load_places()
+
+
+@st.cache_data(show_spinner=False)
+def live_transport(gnaf_id: str):
+    return nb.api_transport(gnaf_id)
+
+
+@st.cache_data(show_spinner=False)
+def live_developments(suburb: str):
+    return nb.api_developments(suburb)
+
+
+def around(f: pd.Series) -> None:
+    pl = places_df()
+    if pl is None or pd.isna(f.lat):
+        st.markdown('<div class="around-title">Around this flat</div><p class="flat-facts">Run '
+                    '<code>python scripts/fetch_exo.py places</code> and <code>python -m src.exo.build</code> '
+                    'to see what is nearby.</p>', unsafe_allow_html=True)
+        return
+    lat, lon = float(f.lat), float(f.lon)
+    near = nb.nearby(lat, lon, pl, radius_km=1.6)
+    st.markdown('<div class="around-title">Around this flat</div><p class="flat-facts">Rent and price are not '
+                'everything: how you get around, what is close, and what is being built nearby.</p>',
+                unsafe_allow_html=True)
+    left, right = st.columns([1.25, 1], gap="medium")
+
+    with left:
+        show = near[(near.kind != "bus") & ((near.kind != "park") | (near.dist_km <= 0.8))]
+        show = show[(show.dist_km <= 1.2) | show.kind.isin(["hospital", "mall", "train", "metro", "ferry"])]
+        show = show.assign(tip=show.label + ": " + show.name.where(show.name != "", show.label) +
+                               " (" + show.walk.astype(str) + " min walk)")
+        buses = near[(near.kind == "bus") & (near.dist_km <= 0.8)]
+        buses = buses.assign(tip="Bus stop " + buses.name + ": " +
+                             buses.routes.where(buses.routes != "", "routes not listed"))
+        components.html(leaflet_map(lat, lon, f.label, show, buses), height=430)
+        keys = "".join(f'<span><i class="chip" style="background:{hexc(KIND_COLOR[k])};'
+                       f'{"color:#1B2422" if k == "construction" else ""}">{l}</i>{t}</span>'
+                       for l, k, t in KEY)
+        st.markdown(f'<div class="keyrow">{keys}<span><i class="chip" style="background:#2F3438;'
+                    f'box-shadow:0 0 0 3px {KERB} inset"></i>This flat</span>'
+                    '<span>Rings: 5 and 10 minutes on foot</span></div>', unsafe_allow_html=True)
+
+    with right:
+        live = live_transport(f.gnaf_id)
+        rows = []
+        rail = nb.nearest(pl, lat, lon, ("train", "metro"))
+        if live and live.get("nearest", {}).get("train"):
+            t = live["nearest"]["train"]
+            d = t["distance_m"] / 1000
+            rows.append(("Train or metro", f"{t.get('name') or t.get('label')}, {nb.walk_min(d)} min walk"))
+        elif rail is not None:
+            rows.append(("Train or metro", f"{rail['name']}, {rail['walk']} min walk"))
+        for kind, label in (("light_rail", "Light rail"), ("ferry", "Ferry")):
+            x = nb.nearest(pl, lat, lon, (kind,))
+            if x is not None and x["dist_km"] <= 1.5:
+                rows.append((label, f"{x['name'] or label}, {x['walk']} min walk"))
+        n_stops, routes = nb.bus_routes(near)
+        shop = nb.nearest(pl, lat, lon, ("supermarket",))
+        if shop is not None:
+            rows.append(("Supermarket", f"{shop['walk']} min walk"))
+        trips = nb.travel(lat, lon)
+        cbd = trips.iloc[0]
+        rows.append(("To the CBD", f"about {cbd.bike} min by bike" + (f", {int(cbd.walk)} on foot" if pd.notna(cbd.walk) else "")))
+        lis = "".join(f"<li><span>{html.escape(a)}</span><span>{html.escape(b)}</span></li>" for a, b in rows)
+        bus = (f'<li style="display:block"><span>Buses: {n_stops} stop{"s" if n_stops != 1 else ""} within 5 minutes'
+               + (f'</span><div class="routes">{"".join(f"<span>{html.escape(r)}</span>" for r in routes[:14])}</div>'
+                  if routes else " (routes not listed)</span>") + "</li>") if n_stops else ""
+        st.markdown(f'<div class="mode"><h3>Without a car</h3><ul>{lis}{bus}</ul></div>', unsafe_allow_html=True)
+
+        prem = (f.r_with_car - f.r_without_car) if "r_with_car" in f and pd.notna(f.r_with_car) else None
+        car_rows = []
+        if prem is not None:
+            car_rows.append(("A car space here", f"{money(prem)} a week"))
+        for _, t in trips.iloc[[0, 1, 4]].iterrows():
+            car_rows.append((t.place.replace(" (Martin Place)", ""), f"about {t.drive} min drive"))
+        lis = "".join(f"<li><span>{html.escape(a)}</span><span>{html.escape(b)}</span></li>" for a, b in car_rows)
+        st.markdown(f'<div class="mode"><h3>With a car</h3><ul>{lis}</ul></div>', unsafe_allow_html=True)
+
+        close = []
+        for kind, label in (("hospital", "Hospital"), ("mall", "Shopping centre"), ("school", "School"),
+                            ("park", "Park")):
+            x = nb.nearest(pl, lat, lon, (kind,))
+            if x is not None:
+                where = f"{x['dist_km']:.1f} km" if x["dist_km"] >= 1 else f"{x['walk']} min walk"
+                close.append((f"{label}" + (f": {x['name']}" if x["name"] else ""), where))
+        lis = "".join(f"<li><span>{html.escape(a)}</span><span>{html.escape(b)}</span></li>" for a, b in close)
+        st.markdown(f'<div class="mode"><h3>Closest</h3><ul>{lis}</ul></div>', unsafe_allow_html=True)
+
+    # trips
+    body = "".join(
+        f'<tr><td>{html.escape(t.place)}</td><td class="n">{t.km:.1f} km</td><td class="n">{t.drive} min</td>'
+        f'<td class="n">{t.bike} min</td><td class="n">{(str(int(t.walk)) + " min") if pd.notna(t.walk) else ""}</td>'
+        f'<td><a href="{t.transit_link}" target="_blank" rel="noopener">Public transport times</a></td></tr>'
+        for t in trips.itertuples())
+    st.markdown(f'<p class="flat-facts" style="margin:18px 0 6px"><b>Getting to the places people ask about.</b> '
+                'Rough estimates from distance, not a journey planner; the links open real trip times.</p>'
+                f'<table class="trips"><thead><tr><th>To</th><th>Distance</th><th>Car</th><th>Bike</th>'
+                f'<th>On foot</th><th></th></tr></thead><tbody>{body}</tbody></table>', unsafe_allow_html=True)
+
+    # projects
+    proj = near[(near.kind == "construction") & (near.dist_km <= 1.5)].head(6)
+    das = live_developments(f.suburb)
+    items = "".join(
+        f'<li><b>{html.escape(p.name or p.detail.capitalize() or "Construction site")}</b>'
+        f'{(" · " + html.escape(p.detail)) if p.name and p.detail else ""}'
+        f'<div class="when">{p.dist_km:.1f} km away, being built now</div></li>' for p in proj.itertuples())
+    if das:
+        items += "".join(
+            f'<li><b>{html.escape(str(d.get("category") or "Development application"))}</b>: '
+            f'{html.escape(str(d["description"])[:160])}<div class="when">Lodged {html.escape(str(d.get("date", ""))[:10])}'
+            f' in {html.escape(f.suburb)}</div></li>' for d in das)
+    if items:
+        st.markdown(f'<div class="mode proj" style="margin-top:14px"><h3>What could change the area</h3>'
+                    f'<ul>{items}</ul><p class="when" style="color:{MUTED};font-size:13.5px;margin:8px 0 0">'
+                    'New stations and shops tend to lift rents and prices; years of building work nearby can '
+                    'hold them back. Applications are proposals: not all get built.</p></div>',
+                    unsafe_allow_html=True)
+
+
 def fair_rent(f: pd.Series, m: dict | None) -> None:
     st.markdown('<div class="card"><h3>Is this rent fair?</h3>'
                 '<p>Type the weekly rent you were quoted for this flat.</p></div>', unsafe_allow_html=True)
@@ -346,6 +553,7 @@ with tab_flat:
             if has_rent:
                 st.write("")
                 fair_rent(f, mr)
+            around(f)
 
 with tab_map:
     if "r_with_car" not in df:
@@ -372,8 +580,16 @@ with tab_map:
                     f'{html.escape(sub_med.index[-1])} ({money(sub_med.iloc[-1])}). One dot per building.</p>'
                     f'<div class="legend">{money(lo)}<div class="ramp"></div>{money(hi)} a week</div>',
                     unsafe_allow_html=True)
+        pc = (mr or {}).get("parking_check") or {}
+        if pc.get("pairs"):
+            st.markdown(f'<div class="card" style="margin:4px 0 12px"><h3>Checked against the raw adverts</h3>'
+                        f'<p>In the same building, with the same bedrooms, adverts with a car space asked a median '
+                        f'<b>{money(pc["raw_median"])} a week</b> more than adverts without one '
+                        f'({pc["pairs"]:,} like-for-like comparisons, last three years). The map shows our '
+                        f'estimate, which is more cautious: {money(pc["model_median"])} for the same flats.</p></div>',
+                        unsafe_allow_html=True)
         st.pydeck_chart(pdk.Deck(
-            map_provider="carto", map_style=pdk.map_styles.CARTO_LIGHT,
+            **basemap(),
             initial_view_state=pdk.ViewState(latitude=float(b.lat.median()), longitude=float(b.lon.median()),
                                              zoom=12.6, pitch=0),
             layers=[pdk.Layer("ScatterplotLayer", b, get_position="[lon, lat]", get_fill_color="color",

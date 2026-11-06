@@ -22,5 +22,6 @@ Fill the [brackets] from outputs/metrics_*.json. Record with a screen recorder; 
    moved by the index, building), and the model's correction. Show `report.html` held-out table.
 4. (1:40–2:30) Kerbside, the app: open an example flat, the two parking bays (rent with and without a
    car space), the sale value and how we got it. Type a quoted rent into "Is this rent fair?".
-   Then the map tab: what a car space adds, building by building.
+   Scroll to "Around this flat": with and without a car, what is close, what is being built.
+   Then the map tab: what a car space adds, building by building, checked against the raw adverts.
 5. (2:30–3:00) What we found ([insight 1], [insight 2]) and what we'd do next.

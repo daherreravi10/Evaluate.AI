@@ -7,13 +7,13 @@ from __future__ import annotations
 
 import pandas as pd
 
-from . import bonds, census, enabled, osm, vg
+from . import bonds, census, enabled, osm, places, vg
 from ..loaders import load
 
 
 def build() -> dict:
     status = {}
-    for name, fn in [("osm", osm.parse), ("census", census.parse), ("bonds", bonds.parse),
+    for name, fn in [("osm", osm.parse), ("places", places.parse), ("census", census.parse), ("bonds", bonds.parse),
                      ("vg", lambda: vg.parse(load("value_input")))]:
         try:
             fn()

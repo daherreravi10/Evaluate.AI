@@ -114,6 +114,44 @@ def rents_section(m: dict) -> str:
     ax.set_title("Typical predicted rent if the flat sat on floor N", loc="left", fontsize=10, color=INK)
     floor = _img(fig)
     imp = _table([[i["feature"], f"{i['share']:.1%}"] for i in m["importance"][:10]], ["feature", "share of gain"])
+    pc, pm = m.get("parking_check") or {}, m.get("parking_method") or {}
+    check_html = ""
+    if pc.get("pairs"):
+        rows = [[("studio" if r["bed"] == 0 else f"{r['bed']} bed"), r["pairs"], f"${r['raw']:.0f}", f"${r['model']:.0f}"]
+                for r in pc["by_bed"]]
+        subs = [[html.escape(r["suburb"].replace(" (NSW)", "")), r["pairs"], f"${r['raw']:.0f}", f"${r['model']:.0f}"]
+                for r in pc["by_suburb"][:10]]
+        fig, ax = plt.subplots(figsize=(4.6, 3.6))
+        bs = pc["by_suburb"]
+        ax.scatter([r["raw"] for r in bs], [r["model"] for r in bs], s=[12 + r["pairs"] / 3 for r in bs],
+                   color=ACCENT, alpha=.75, edgecolor="white", linewidth=.6)
+        hi = max([r["raw"] for r in bs] + [r["model"] for r in bs] + [1]) * 1.1
+        ax.plot([0, hi], [0, hi], color=MUTED, lw=.8, ls="--")
+        ax.set_xlim(0, hi), ax.set_ylim(0, hi)
+        ax.set_xlabel("raw adverts, $ per week"), ax.set_ylabel("our hand-in, $ per week")
+        ax.set_title("Car-space value by suburb (dot size = pairs)", loc="left", fontsize=10, color=INK)
+        scatter = _img(fig)
+        choice = ""
+        if pm:
+            choice = (f"<p>We also tried handing in the raw value instead (keeping the model's rent for the flat as "
+                      f"listed and moving the other column by the raw gap). On the held-out adverts with known parking "
+                      f"({pm['rows_with_parking_known']:,}) the median miss was ${pm['calibrated']['median_abs_error']:.1f} "
+                      f"against ${pm['model']['median_abs_error']:.1f} for the model alone, so the CSV uses the "
+                      f"<b>{'raw-calibrated' if pm['chosen'] == 'calibrated' else 'model'}</b> version. Most adverts "
+                      f"match the flat's usual parking, so the score barely depends on the gap; the raw comparison is "
+                      f"the better guide to what a car space is worth.</p>")
+        check_html = f"""
+<h3>Does the car-space value hold up in the raw adverts?</h3>
+<p>Like for like: in the same building, with the same bedrooms, adverts with a car space against adverts
+without, all moved to July 2026 rents, from the three years before the cut-off. Across
+{pc['pairs']:,} such building-and-bedroom pairs ({pc['adverts']:,} adverts) a car space added a median
+<b>${pc['raw_median']:.0f} a week</b>; our hand-in says ${pc['model_median']:.0f} for the same flats.
+In {pc['raw_share_negative']:.0%} of pairs the flats with parking advertised for less, a reminder that
+single buildings are noisy.</p>
+{_table(rows, ["bedrooms", "pairs", "raw adverts", "our hand-in"])}
+{scatter}
+{_table(subs, ["suburb (most pairs)", "pairs", "raw adverts", "our hand-in"])}
+{choice}"""
     return f"""
 <h2>Task 4 — What will this flat rent for?</h2>
 <p class="kpi"><span>${best['median_abs_error']:.0f}</span> median miss per week on {m['test_rows']:,}
@@ -128,6 +166,7 @@ which the model never saw. The final model is refitted on everything up to {m['c
 <p>Every flat gets two answers; the gap is the parking premium (median ${m['parking_premium_median']:.0f}/week).
 A monotone constraint stops the model ever pricing a car space below zero.</p>
 {park}
+{check_html}
 {floor}
 <h3>What the model leans on</h3>
 {imp}

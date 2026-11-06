@@ -57,7 +57,9 @@ src/metrics.py    judges' metrics      src/validate.py   CSV contract check
 src/client.py     cached, throttled API client, same behaviour as the official one (python -m src.client = smoke test)
 src/report.py     report.html          notes.md          the team's words for the report
 app/app.py        Kerbside: Streamlit demo app (local only: shows private past prices). Fonts in app/static
-src/exo/          outside data: osm.py census.py bonds.py vg.py build.py common.py
+src/exo/          outside data: osm.py census.py bonds.py vg.py places.py build.py common.py
+src/parking.py    car-space value from like-for-like raw adverts; calibrated option chosen by the held-out check
+src/neighbourhood.py  app only: places nearby, car vs no car, rough travel times, projects; live API layer if a key is set
 ```
 
 ## Facts about the data (from the task pages)
@@ -104,6 +106,8 @@ src/exo/          outside data: osm.py census.py bonds.py vg.py build.py common.
 - `python scripts/exo_ablation.py --each` decides with the held-out check which sources stay.
   VG sales are used for training only; test sets are identical with or without outside data.
 - VG data is CC BY-NC-ND: never commit it, never republish it. Credit every source in README.md.
+- `places` (OSM amenities, bus routes, construction) is for the app only, never a model feature, so it uses
+  today's map. The app also calls the API live when a key is set: `transport/nearby`, `development/da-list`.
 
 ## Rules for agents
 1. NEVER guess a column. On the day, print `df.columns` and 3 rows of each supplied file, then fix

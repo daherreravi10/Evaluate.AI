@@ -309,6 +309,259 @@
   "car"
  ],
  "parking_premium_median": 26.0,
+ "parking_check": {
+  "pairs": 2580,
+  "adverts": 26677,
+  "years": 3,
+  "raw_median": 43.050683680203065,
+  "model_median": 26.5,
+  "raw_share_negative": 0.23527131782945737,
+  "by_suburb": [
+   {
+    "suburb": "Darlington (NSW)",
+    "pairs": 131,
+    "raw": 51.92864298707468,
+    "model": 30.25
+   },
+   {
+    "suburb": "Elizabeth Bay (NSW)",
+    "pairs": 106,
+    "raw": 50.77287876492687,
+    "model": 26.75
+   },
+   {
+    "suburb": "Beaconsfield (NSW)",
+    "pairs": 102,
+    "raw": 26.62894388773202,
+    "model": 26.5
+   },
+   {
+    "suburb": "Millers Point (NSW)",
+    "pairs": 95,
+    "raw": 45.99175858604349,
+    "model": 25.5
+   },
+   {
+    "suburb": "Eveleigh (NSW)",
+    "pairs": 93,
+    "raw": 30.399428017438026,
+    "model": 26.25
+   },
+   {
+    "suburb": "Glebe (NSW)",
+    "pairs": 89,
+    "raw": 49.31084400310135,
+    "model": 28.0
+   },
+   {
+    "suburb": "Barangaroo (NSW)",
+    "pairs": 83,
+    "raw": 32.90700675158405,
+    "model": 22.0
+   },
+   {
+    "suburb": "Darlinghurst (NSW)",
+    "pairs": 83,
+    "raw": 30.624788711005863,
+    "model": 27.5
+   },
+   {
+    "suburb": "Sydney (NSW)",
+    "pairs": 83,
+    "raw": 30.34722887849034,
+    "model": 21.5
+   },
+   {
+    "suburb": "Dawes Point (NSW)",
+    "pairs": 82,
+    "raw": 54.22967626693037,
+    "model": 27.875
+   },
+   {
+    "suburb": "Redfern (NSW)",
+    "pairs": 82,
+    "raw": 36.080285486147545,
+    "model": 28.625
+   },
+   {
+    "suburb": "Surry Hills (NSW)",
+    "pairs": 81,
+    "raw": 72.57750221289257,
+    "model": 33.0
+   },
+   {
+    "suburb": "Rushcutters Bay (NSW)",
+    "pairs": 80,
+    "raw": 25.275812077677188,
+    "model": 23.75
+   },
+   {
+    "suburb": "Rosebery (NSW)",
+    "pairs": 79,
+    "raw": 47.40717750098395,
+    "model": 26.0
+   },
+   {
+    "suburb": "Pyrmont (NSW)",
+    "pairs": 78,
+    "raw": 43.1721047204295,
+    "model": 24.25
+   },
+   {
+    "suburb": "The Rocks (NSW)",
+    "pairs": 77,
+    "raw": 30.118765410729907,
+    "model": 21.75
+   },
+   {
+    "suburb": "Chippendale (NSW)",
+    "pairs": 75,
+    "raw": 43.74790722110197,
+    "model": 26.0
+   },
+   {
+    "suburb": "Paddington (NSW)",
+    "pairs": 74,
+    "raw": 30.044609226046987,
+    "model": 23.0
+   },
+   {
+    "suburb": "Ultimo (NSW)",
+    "pairs": 74,
+    "raw": 54.94823224129891,
+    "model": 28.5
+   },
+   {
+    "suburb": "Centennial Park (NSW)",
+    "pairs": 73,
+    "raw": 35.531606601656904,
+    "model": 22.0
+   },
+   {
+    "suburb": "Waterloo (NSW)",
+    "pairs": 73,
+    "raw": 57.80607619092791,
+    "model": 27.5
+   },
+   {
+    "suburb": "Annandale (NSW)",
+    "pairs": 72,
+    "raw": 48.94257873267884,
+    "model": 26.25
+   },
+   {
+    "suburb": "Forest Lodge (NSW)",
+    "pairs": 72,
+    "raw": 56.60058786454874,
+    "model": 24.875
+   },
+   {
+    "suburb": "Zetland (NSW)",
+    "pairs": 72,
+    "raw": 45.10128578708827,
+    "model": 30.75
+   },
+   {
+    "suburb": "Camperdown (NSW)",
+    "pairs": 71,
+    "raw": 39.43134871989264,
+    "model": 27.5
+   },
+   {
+    "suburb": "Haymarket (NSW)",
+    "pairs": 69,
+    "raw": 66.96788521725477,
+    "model": 27.5
+   },
+   {
+    "suburb": "Erskineville (NSW)",
+    "pairs": 68,
+    "raw": 45.607626590640166,
+    "model": 36.0
+   },
+   {
+    "suburb": "St Peters (NSW)",
+    "pairs": 67,
+    "raw": 37.729944768704854,
+    "model": 27.0
+   },
+   {
+    "suburb": "Moore Park (NSW)",
+    "pairs": 62,
+    "raw": 35.15498706537164,
+    "model": 27.0
+   },
+   {
+    "suburb": "Potts Point (NSW)",
+    "pairs": 61,
+    "raw": 45.28126049874152,
+    "model": 25.5
+   },
+   {
+    "suburb": "Woolloomooloo (NSW)",
+    "pairs": 61,
+    "raw": 50.37680602006719,
+    "model": 26.0
+   },
+   {
+    "suburb": "Alexandria (NSW)",
+    "pairs": 60,
+    "raw": 38.91825972484514,
+    "model": 29.0
+   },
+   {
+    "suburb": "Newtown (NSW)",
+    "pairs": 52,
+    "raw": 29.142142230055356,
+    "model": 29.625
+   }
+  ],
+  "by_bed": [
+   {
+    "bed": 0,
+    "pairs": 80,
+    "raw": 27.57291037259904,
+    "model": 15.5
+   },
+   {
+    "bed": 1,
+    "pairs": 1193,
+    "raw": 37.07385491561786,
+    "model": 24.25
+   },
+   {
+    "bed": 2,
+    "pairs": 1177,
+    "raw": 50.79139568010294,
+    "model": 29.5
+   },
+   {
+    "bed": 3,
+    "pairs": 130,
+    "raw": 63.79743449615307,
+    "model": 30.5
+   }
+  ],
+  "suburb_rank_corr": 0.3921343360641339
+ },
+ "parking_method": {
+  "model": {
+   "n": 4059,
+   "median_abs_error": 47.43320882316743,
+   "share_within_100": 0.8265582655826558,
+   "r2": 0.8690501474958088,
+   "blank": 0
+  },
+  "calibrated": {
+   "n": 4059,
+   "median_abs_error": 47.97371205768229,
+   "share_within_100": 0.825080068982508,
+   "r2": 0.8684797352928225,
+   "blank": 0
+  },
+  "rows_with_parking_known": 4059,
+  "chosen": "model"
+ },
  "parking_premium_by_bed": {
   "0": 15.5,
   "1": 24.0,

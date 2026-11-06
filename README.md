@@ -14,7 +14,12 @@ Two estimates for every flat in the City of Sydney, from one pipeline:
 - **Weekly rent** for all 65,777 flats, as at 31 July 2026, with and without a car space
   (`outputs/rents_<team>.csv`). The gap is what a car space is worth for that flat.
 - **Sale value** for all 181,711 unit-style addresses on 31 August 2026 (`outputs/valuation_<team>.csv`).
-- A small app (`app/app.py`): type an address, get both numbers and the reason behind them.
+- **Kerbside** (`app/app.py`), the app: type an address and get the weekly rent with and without a car space,
+  the sale value and how we got them; check whether a quoted rent is fair; see what is around the flat
+  (transport, shops, hospitals, bus routes, what is being built, rough travel times by car, bike and on foot);
+  and a map of what a car space adds to rent across the City.
+
+![Kerbside](docs/kerbside_1_flat.png)
 
 ## Who it helps
 

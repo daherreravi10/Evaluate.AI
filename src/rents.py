@@ -17,6 +17,7 @@ from .exo import build as exo
 from .loaders import load, merge_api_events
 from .metrics import bootstrap_ci, rent_scores
 from .model import build, fit, group_importance, importance, snapshots_before
+from .parking import calibrate, check as parking_check, premium_table, raw_pairs
 
 # Every column choice is explained in src/decisions.py (and in report.html).
 # Not here on purpose: ever_advertised_for_lease and attrs_last_seen look ahead in time;
@@ -114,15 +115,33 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
     b_park = tf.set_index(["suburb", "bed", "car"]).index.map(sbc).to_numpy(float)
     b_park = np.where(np.isnan(b_park), b_sub, b_park)
     b_own = np.where(test.own_last_ladj.notna(), np.exp(test.own_last_ladj), b_sub)
+    # car-space value calibrated by raw like-for-like adverts (built before the split only)
+    T1, T0 = test.assign(car=1.0), test.assign(car=0.0)
+    w_h, wo_h = np.exp(model.predict(T1)), np.exp(model.predict(T0))
+    own_h = test.gnaf_id.map(flats.set_index("gnaf_id").car_space)
+    lookup_h = premium_table(raw_pairs(flats, lea, end_split))
+    if lookup_h is not None:
+        w_c, wo_c = calibrate(w_h, wo_h, own_h, lookup_h(tf.suburb, tf.bed))
+        p_cal = np.where(test.car == 1, w_c, np.where(test.car == 0, wo_c, p_model))
+    else:
+        p_cal = p_model
+    known = test.car.notna().to_numpy()
+    yk = test.price.to_numpy()[known]
+    park_cmp = {"model": rent_scores(yk, p_model[known]), "calibrated": rent_scores(yk, p_cal[known]),
+                "rows_with_parking_known": int(known.sum())}
+    use_cal = park_cmp["calibrated"]["median_abs_error"] < park_cmp["model"]["median_abs_error"]
+    park_cmp["chosen"] = "calibrated" if use_cal else "model"
+    print(f"  car-space value: model ${park_cmp['model']['median_abs_error']:.1f} vs calibrated by raw adverts "
+          f"${park_cmp['calibrated']['median_abs_error']:.1f} median miss -> using {park_cmp['chosen']}")
     methods = {
         "Suburb x bedrooms median": b_sub,
         "Suburb x bedrooms x parking median": b_park,
         "Own last advert, indexed": b_own,
-        "Our model (LightGBM, snapshots)": p_model,
+        "Our model (LightGBM, snapshots)": p_cal if use_cal else p_model,
     }
     y = test.price.to_numpy()
     held = {k: rent_scores(y, v) for k, v in methods.items()}
-    ci = bootstrap_ci(y, p_model, rent_scores, "median_abs_error")
+    ci = bootstrap_ci(y, methods["Our model (LightGBM, snapshots)"], rent_scores, "median_abs_error")
     groups = group_importance(model, test, feats, rent_scores, "median_abs_error", higher_is_better=False)
     print("  held-out importance (how much the median miss grows if the group is scrambled):")
     for g in groups[:-1]:
@@ -133,7 +152,8 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
                   "suburb": tf.suburb, "bed": tf.bed, **{k: v for k, v in methods.items()}}
                  ).to_parquet(C.OUT / "rents_holdout.parquet")
     if heldout_only:
-        return {"heldout": held, "features": feats, "exo": exo.available(), "group_importance": groups}
+        return {"heldout": held, "features": feats, "exo": exo.available(), "group_importance": groups,
+                "parking_method": park_cmp}
 
     # ---------- 2. final model: everything up to the cut-off, predict all flats ----------
     print("final model")
@@ -146,6 +166,11 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
     with_car = np.where(np.isfinite(with_car), with_car, fallback)
     without_car = np.where(np.isfinite(without_car), without_car, fallback)
     without_car = np.minimum(without_car, with_car)
+    if use_cal:
+        lookup_f = premium_table(raw_pairs(flats, lea, s_final))
+        if lookup_f is not None:
+            with_car, without_car = calibrate(with_car, without_car, flats.car_space,
+                                              lookup_f(flats.suburb, flats.bed))
     out = pd.DataFrame({"gnaf_id": flats.gnaf_id,
                         "rent_with_car_space": np.round(with_car * 2) / 2,
                         "rent_without_car_space": np.round(without_car * 2) / 2})
@@ -163,6 +188,7 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
     app.to_parquet(C.CACHE / "app_rents.parquet")
 
     prem = out.rent_with_car_space - out.rent_without_car_space
+    pcheck = parking_check(flats, lea, out, C.RENT_CUTOFF)
     by_bed = pd.DataFrame({"bed": flats.bed, "prem": prem}).groupby("bed").prem.median()
     by_sub = pd.DataFrame({"suburb": flats.suburb, "prem": prem}).groupby("suburb").prem.median()
     floor_pd = floor_effect(model_f, Xf, feats)
@@ -174,7 +200,8 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
         "test_to": str(test.date.max().date()), "heldout": held,
         "model_median_error_ci95": ci, "importance": importance(model_f, feats),
         "group_importance": groups, "features": feats,
-        "parking_premium_median": float(prem.median()),
+        "parking_premium_median": float(prem.median()), "parking_check": pcheck,
+        "parking_method": park_cmp,
         "parking_premium_by_bed": {str(k): float(v) for k, v in by_bed.items()},
         "parking_premium_by_suburb": {k: float(v) for k, v in by_sub.sort_values().items()},
         "floor_effect": floor_pd,
