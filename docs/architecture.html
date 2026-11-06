@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sydney Flats architecture</title>
+<style>
+  :root{
+    --ink:#18202f; --muted:#5f6878; --line:#dfe3ea; --bg:#f6f5f1; --card:#ffffff;
+    --s1:#2f5d8a; --s2:#6b4fa0; --s3:#0f766e; --s4:#b45309; --s5:#9f1d4f;
+    --lock:#7a2e2e;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font:14px/1.38 "Inter","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+       width:1800px;padding:34px 36px 30px}
+  header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px}
+  h1{font-size:30px;letter-spacing:-.01em}
+  header p{color:var(--muted);font-size:15px}
+  .flow{display:grid;grid-template-columns:repeat(5,1fr);gap:34px;position:relative}
+  .stage{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 16px 14px;
+         position:relative;display:flex;flex-direction:column;gap:10px;border-top:5px solid var(--c)}
+  .stage:not(:last-child)::before{content:"";position:absolute;right:-24px;top:calc(50% - 1.5px);
+         width:16px;height:3px;background:#8e97a6;border-radius:2px}
+  .stage:not(:last-child)::after{content:"";position:absolute;right:-31px;top:calc(50% - 8px);width:0;height:0;
+         border-top:8px solid transparent;border-bottom:8px solid transparent;border-left:10px solid #8e97a6}
+  .head{display:flex;gap:10px;align-items:center}
+  .num{width:30px;height:30px;border-radius:50%;background:var(--c);color:#fff;font-weight:700;
+       display:grid;place-items:center;font-size:15px;flex:none}
+  .head h2{font-size:18px;line-height:1.15}
+  .head small{display:block;color:var(--muted);font-size:12.5px;font-weight:500}
+  .box{border:1px solid var(--line);border-radius:8px;padding:9px 10px;background:#fbfbfc}
+  .box h3{font-size:13.5px;margin-bottom:3px}
+  .box p,.box li{font-size:12.6px;color:#2b3342}
+  .box ul{padding-left:15px}
+  .box li{margin:1px 0}
+  code{font:11.6px/1.3 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--c);
+       background:color-mix(in srgb,var(--c) 9%,white);padding:1px 4px;border-radius:4px;white-space:nowrap}
+  .tag{display:inline-block;font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;margin-top:4px}
+  .lock{background:#f6e7e7;color:var(--lock)}
+  .ok{background:#e4f2ef;color:#0b5e57}
+  .key{border-color:color-mix(in srgb,var(--c) 45%,white);background:color-mix(in srgb,var(--c) 6%,white)}
+  .chain{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+  .chain span{font-size:11.6px;background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 6px}
+  .chain i{font-style:normal;color:var(--muted);font-size:12px}
+  .bottom{display:grid;grid-template-columns:1.25fr 1fr 1.15fr;gap:20px;margin-top:26px}
+  .band{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .band h2{font-size:15.5px;margin-bottom:8px}
+  .band ul{padding-left:16px}
+  .band li{font-size:13px;margin:3px 0}
+  .agents{display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;margin-top:4px}
+  .agent{font-size:12.6px}
+  .agent b{display:block;font-size:12.8px}
+  .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px;vertical-align:1px}
+  .timeline{display:flex;gap:0;margin-top:6px}
+  .timeline div{flex:1;font-size:12px;border-left:2px solid var(--line);padding:2px 8px}
+  .timeline b{display:block;font-size:12.6px}
+  footer{margin-top:16px;color:var(--muted);font-size:12px;display:flex;justify-content:space-between}
+</style>
+</head>
+<body>
+<header>
+  <h1>Sydney Flats — how it all fits together</h1>
+  <p>Microburbs Hackathon · Task 4 weekly rent (with / without a car space) · Task 5 sale value · City of Sydney</p>
+</header>
+
+<section class="flow">
+  <!-- 1 -->
+  <div class="stage" style="--c:var(--s1)">
+    <div class="head"><div class="num">1</div><h2>Data in<small>what we start from</small></h2></div>
+    <div class="box key">
+      <h3>Microburbs supplied files</h3>
+      <p>Arrive by email, Sat 11:00</p>
+      <ul>
+        <li><b>T4</b> 65,777 flats to price · past rental adverts · blocks 2021–26</li>
+        <li><b>T5</b> 181,711 flats to value · past sales + For Sale adverts · repeat sales</li>
+      </ul>
+      <span class="tag lock">private · never in the repo</span>
+    </div>
+    <div class="box">
+      <h3>Microburbs API <span style="font-weight:500;color:var(--muted)">(optional)</span></h3>
+      <p>Extra history per flat (<code>history/all</code>), cached, throttled</p>
+      <p><code>src/client.py</code> <code>scripts/api_history.py</code></p>
+    </div>
+    <div class="box">
+      <h3>Free outside data</h3>
+      <p>Downloaded Friday, used only if it helps</p>
+      <ul>
+        <li>OpenStreetMap as at 31 Jul 2026</li>
+        <li>ABS Census 2021 by SA1</li>
+        <li>NSW rental bond lodgements</li>
+        <li>NSW Valuer General sales</li>
+      </ul>
+      <p><code>scripts/fetch_exo.py</code> <code>src/exo/</code></p>
+    </div>
+  </div>
+
+  <!-- 2 -->
+  <div class="stage" style="--c:var(--s2)">
+    <div class="head"><div class="num">2</div><h2>Prepare<small>clean, filter, decide</small></h2></div>
+    <div class="box">
+      <h3>Load + map columns</h3>
+      <p>Real column names fixed once, in one place</p>
+      <p><code>src/loaders.py</code> <code>SCHEMA</code></p>
+    </div>
+    <div class="box key">
+      <h3>As-of filter — the rule that can disqualify</h3>
+      <p><b>T4:</b> nothing after 31 Jul 2026<br><b>T5:</b> nothing after 31 Aug 2026<br>Applied to files, API and outside data</p>
+      <p><code>src/asof.py</code></p>
+    </div>
+    <div class="box">
+      <h3>EDA + decision log</h3>
+      <p>All 57 columns: use · derive · key · drop — with the reason and the evidence (blanks, dates, signal)</p>
+      <p>Dropped for looking ahead: <code>attrs_last_seen</code> <code>ever_advertised…</code></p>
+      <p><code>src/eda.py</code> <code>src/decisions.py</code></p>
+    </div>
+  </div>
+
+  <!-- 3 -->
+  <div class="stage" style="--c:var(--s3)">
+    <div class="head"><div class="num">3</div><h2>Learn<small>features + model</small></h2></div>
+    <div class="box">
+      <h3>Monthly snapshots</h3>
+      <p>12 past dates. At each one, features use only data before it; the target is the prices of the next 2 months — the judges' set-up</p>
+    </div>
+    <div class="box">
+      <h3>Features per flat</h3>
+      <p>own history · same building · block · suburb · nearest buildings · asking advert · market index (repeat sales) · outside data</p>
+      <p><code>src/features.py</code> <code>src/index.py</code></p>
+    </div>
+    <div class="box key">
+      <h3>Anchor: best known price</h3>
+      <div class="chain"><span>For Sale advert</span><i>→</i><span>own last price, indexed</span><i>→</i><span>same building</span><i>→</i><span>suburb</span></div>
+    </div>
+    <div class="box key">
+      <h3>LightGBM learns the correction</h3>
+      <p>Log price, Huber loss (close to the median) · a car space is never worth &lt; $0</p>
+      <p><code>src/model.py</code> <code>src/rents.py</code> <code>src/valuation.py</code></p>
+    </div>
+  </div>
+
+  <!-- 4 -->
+  <div class="stage" style="--c:var(--s4)">
+    <div class="head"><div class="num">4</div><h2>Prove<small>our own held-out check</small></h2></div>
+    <div class="box key">
+      <h3>Split by date</h3>
+      <p>Train before 1 May 2026 · test May → cut-off, never seen while building</p>
+    </div>
+    <div class="box">
+      <h3>The judges' metrics</h3>
+      <p><b>T4</b> median $ miss · share within $100<br><b>T5</b> share within 10% · median $ miss · R²</p>
+      <p><code>src/metrics.py</code></p>
+    </div>
+    <div class="box">
+      <h3>Against baselines</h3>
+      <p>suburb × bedrooms · + parking · own last price × index · asking price</p>
+    </div>
+    <div class="box">
+      <h3>How sure, and why</h3>
+      <p>bootstrap interval · 227-sale noise · importance by feature group · outside data on / off</p>
+      <p><code>scripts/exo_ablation.py</code></p>
+    </div>
+  </div>
+
+  <!-- 5 -->
+  <div class="stage" style="--c:var(--s5)">
+    <div class="head"><div class="num">5</div><h2>Deliver<small>hand-in by 3:00 pm</small></h2></div>
+    <div class="box key">
+      <h3>The two scored CSVs</h3>
+      <p><code>rents_&lt;team&gt;.csv</code> with / without car space<br><code>valuation_&lt;team&gt;.csv</code> one value per address</p>
+      <p>Checked by <code>src/validate.py</code></p>
+    </div>
+    <div class="box">
+      <h3>report.html</h3>
+      <p>findings first · how we chose the data · method · held-out results · what did not work · credits</p>
+      <p><code>src/report.py</code> + <code>notes.md</code></p>
+    </div>
+    <div class="box">
+      <h3>Demo app → videos</h3>
+      <p>Type an address: rent with / without a car space, value, and why · parking map · proof tab</p>
+      <p><code>app/app.py</code> → <b>demo.mp4</b> (≤3 min) · <b>pitch.mp4</b> (≤45 s)</p>
+    </div>
+    <div class="box">
+      <h3>Public GitHub repo</h3>
+      <p>code · CSVs · report · README · videos</p>
+      <span class="tag ok">no data · no key</span>
+    </div>
+  </div>
+</section>
+
+<section class="bottom">
+  <div class="band">
+    <h2>Guardrails, running the whole time</h2>
+    <ul>
+      <li><b>As-of filter</b> on every data path, including the API and outside sources</li>
+      <li><b>22 tests</b>: no future data in features, look-ahead columns blocked, judges' metrics, CSV contract, API client, outside-data parsers</li>
+      <li><b>Validator</b> before every push: rows, ids, no blanks, file names</li>
+      <li><b>.gitignore</b> keeps <code style="--c:var(--s1)">data/</code>, <code style="--c:var(--s1)">.env</code> and outside data out of the public repo</li>
+    </ul>
+  </div>
+  <div class="band">
+    <h2>How the team builds it</h2>
+    <p style="font-size:13px;margin-bottom:4px">Claude Code reads <code style="--c:var(--s3)">CLAUDE.md</code> (rules + contract); one subagent per role</p>
+    <div class="agents">
+      <div class="agent"><b><span class="dot" style="background:var(--s2)"></span>data-engineer</b>steps 1–2</div>
+      <div class="agent"><b><span class="dot" style="background:var(--s3)"></span>rent-modeler</b>steps 3–4, Task 4</div>
+      <div class="agent"><b><span class="dot" style="background:var(--s4)"></span>valuation-modeler</b>steps 3–4, Task 5</div>
+      <div class="agent"><b><span class="dot" style="background:var(--s5)"></span>storyteller-qa</b>step 5 + final checks</div>
+    </div>
+  </div>
+  <div class="band">
+    <h2>One command, one day</h2>
+    <p style="font-size:13px"><code style="--c:var(--s3)">bash scripts/run_all.sh</code> → tests · outside data · EDA · Task 4 · Task 5 · validate · report</p>
+    <div class="timeline">
+      <div><b>11:00</b>files + key</div>
+      <div><b>11:40</b>first real CSVs</div>
+      <div><b>1:00</b>valid CSVs pushed</div>
+      <div><b>1:45</b>model frozen</div>
+      <div><b>2:45</b>last push</div>
+    </div>
+  </div>
+</section>
+<footer><span>Every number in the pitch comes from outputs/metrics_*.json</span><span>docs/architecture.html → docs/architecture.png</span></footer>
+</body>
+</html>

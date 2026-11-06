@@ -5,6 +5,8 @@ Task 5 (sale value), City of Sydney.
 
 > TODO on the day: replace every TODO with real numbers from `outputs/metrics_*.json`.
 
+![How it all fits together](docs/architecture.png)
+
 ## What we built
 
 Two estimates for every flat in the City of Sydney, from one pipeline:
