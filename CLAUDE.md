@@ -40,6 +40,7 @@ python -m src.report                  # report.html from metrics + notes.md
 streamlit run app/app.py              # demo for demo.mp4
 pytest -q                             # leakage + metric + contract tests
 bash scripts/run_all.sh               # everything above in order
+bash scripts/run_task.sh rents|valuation [--quick]  # one task alone (two laptops in parallel)
 ```
 
 ## Layout
@@ -55,7 +56,7 @@ src/decisions.py  why each supplied column is (not) used   src/eda.py  evidence 
 src/metrics.py    judges' metrics      src/validate.py   CSV contract check
 src/client.py     cached, throttled API client, same behaviour as the official one (python -m src.client = smoke test)
 src/report.py     report.html          notes.md          the team's words for the report
-app/app.py        Streamlit demo
+app/app.py        Kerbside: Streamlit demo app (local only: shows private past prices). Fonts in app/static
 src/exo/          outside data: osm.py census.py bonds.py vg.py build.py common.py
 ```
 

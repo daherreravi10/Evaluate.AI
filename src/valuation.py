@@ -149,7 +149,8 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
     app = app.assign(value=out.value, anchor_kind=Xf.anchor_kind.to_numpy(),
                      own_last=np.exp(Xf.own_last_ladj).to_numpy(), own_last_age_y=Xf.own_last_age_y.to_numpy(),
                      ask=np.exp(Xf.ask_ladj).to_numpy() if "ask_ladj" in Xf else np.nan,
-                     bldg_bed=np.exp(Xf.bldg_bed_med).to_numpy(), bldg_bed_n=Xf.bldg_bed_n.to_numpy())
+                     bldg_bed=np.exp(Xf.bldg_bed_med).to_numpy(), bldg_bed_n=Xf.bldg_bed_n.to_numpy(),
+                     anchor=np.exp(Xf.anchor_ladj).to_numpy(), own_n=Xf.own_n.to_numpy())
     app.to_parquet(C.CACHE / "app_valuation.parquet")
 
     metrics = {

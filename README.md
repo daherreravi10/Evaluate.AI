@@ -63,8 +63,10 @@ pip install -r requirements.txt
 cp .env.example .env            # paste the team key; never commit .env
 # put the six supplied CSVs in data/supplied/
 TEAM_NAME="Your Team" bash scripts/run_all.sh
-streamlit run app/app.py
+streamlit run app/app.py           # Kerbside, the demo app (local only)
 ```
+
+One task at a time: `bash scripts/run_task.sh rents` or `bash scripts/run_task.sh valuation`.
 
 ## Files
 

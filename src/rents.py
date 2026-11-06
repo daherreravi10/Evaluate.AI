@@ -158,7 +158,8 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
     app = app.assign(with_car=out.rent_with_car_space, without_car=out.rent_without_car_space,
                      anchor_kind=Xf.anchor_kind.to_numpy(), own_last=np.exp(Xf.own_last_ladj).to_numpy(),
                      own_last_age_y=Xf.own_last_age_y.to_numpy(),
-                     bldg_bed=np.exp(Xf.bldg_bed_med).to_numpy(), bldg_bed_n=Xf.bldg_bed_n.to_numpy())
+                     bldg_bed=np.exp(Xf.bldg_bed_med).to_numpy(), bldg_bed_n=Xf.bldg_bed_n.to_numpy(),
+                     anchor=np.exp(Xf.anchor_ladj).to_numpy(), own_n=Xf.own_n.to_numpy())
     app.to_parquet(C.CACHE / "app_rents.parquet")
 
     prem = out.rent_with_car_space - out.rent_without_car_space

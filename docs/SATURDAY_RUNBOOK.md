@@ -14,18 +14,38 @@ tell the story. A perfect CSV at 3:05 does not count.
 - [ ] **Outside data, tonight** (needs internet, not the key): `python scripts/fetch_exo.py`, then
       `python -m src.exo.build`. Anything that fails prints where to download it by hand into
       `data/exo/raw/<source>/`. Copy the whole `data/exo/` folder to every laptop (never to the repo).
-- [ ] Try `streamlit run app/app.py` and record 10 s of screen to check the recorder works.
+- [ ] Try `streamlit run app/app.py` (Kerbside, the demo app; fonts are bundled, works offline except the
+      map background) and record 10 s of screen to check the recorder works.
 - [ ] Email Luke (a written answer removes the risk):
   1. May we use a *For Sale* advert dated before 31 August for a flat that sold after it?
      (The rules allow it as written, but better to confirm.)
   2. Do one `pitch.mp4` and one `demo.mp4` cover two tasks, or do you expect one per task?
   3. Do the past-leases and sales files arrive already cut at the task date, or should we filter
      them? (The kit filters them either way.)
+  4. The guide says "Choose one or more" tasks, but the form lets us pick only one. We will pick
+     Task 4 on the form and also hand in Task 5 from the same repo. Is that right?
 
 ## Saturday, before 10 am
 
 - [ ] Have breakfast. Laptop and charger. Claude Code signed in.
-- [ ] **One person** registers the team on the Google form (members + Tasks 4 and 5).
+- [ ] **One person** registers the team on the Google form: members + **Task 4** (the form allows one).
+      If the form has a notes field, add "also submitting Task 5". Say the same in Slack.
+
+## Two tasks without risking either
+
+The guide says "Choose one or more" and "Use the same public repo for every task your team enters",
+and there is one overall ranking. So Task 5 is extra chances, as long as it never slows Task 4 down.
+
+- **Task 4 first, always.** If time gets short, Task 5 ships whatever version is valid at that moment.
+- **Two laptops in parallel**, one per task: `bash scripts/run_task.sh rents` and
+  `bash scripts/run_task.sh valuation`. Each touches only its own CSV and metrics file, so pushes never
+  clash. Whoever pushes last runs `python -m src.report`.
+- **Run times measured on mock data of the real size** (2-core cloud machine, so a normal laptop should be as fast or faster):
+  Task 4 full ~1:40 min, quick ~1:05 · Task 5 full ~1:50 min, quick ~1:05 · outside-data ablation ~8 min.
+  Nothing here needs a GPU or a big machine.
+- **Only one laptop?** Run the tasks one after the other: `bash scripts/run_all.sh` (~5 min in total).
+- **Fallback for Task 5:** by 1:00 pm push the `--quick` CSV even if Task 4 still needs work. A
+  valid file with reasonable values beats a perfect one at 3:05.
 
 ## Roles (for 3–4 people; with 2, merge 1+2 and 3+4)
 
@@ -54,7 +74,7 @@ tell the story. A perfect CSV at 3:05 does not count.
 | 11:40–1:00 | Read `outputs/metrics_*.json` and pick the 2–3 findings | 4 |
 | **1:00** | **Push valid CSVs** (`python -m src.validate` green) and `report.html`. This is already a hand-in. | 1 |
 | 1:00–2:00 | Last improvements; the model freezes at 1:45 | 2, 3 |
-| 1:30–2:30 | Write notes.md and README, record `demo.mp4` (app + report) and `pitch.mp4` | 4 (+ all) |
+| 1:30–2:30 | Write notes.md and README, record `demo.mp4` (Kerbside app + report) and `pitch.mp4` | 4 (+ all) |
 | 2:30 | Final review with `storyteller-qa` (the 6 checks) | 4 |
 | 2:45 | Last push. Nothing after 2:50. | 1 |
 | 3:00 | Hand-ins close | |
