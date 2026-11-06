@@ -47,6 +47,12 @@ HINTS = {
     "mb": ["mb", "mb_code", "mesh_block", "mb_code_2021", "meshblock"],
     "gnaf_id": ["gnaf_id", "gnaf_pid", "gnaf", "address_id"],
 }
+# last resort: a single unmatched column whose name fits the pattern
+PATTERNS = {"price": r"rent|price|amount|value|\$", "date": r"date|day|listed|sold|when",
+            "car_spaces": r"car|park|garage", "type": r"type|event|status|kind"}
+# without these the pipeline cannot run
+REQUIRED = {"rents_leases": ["gnaf_id", "date", "price"], "value_sales": ["gnaf_id", "date", "price"],
+            "value_repeat": ["gnaf_id", "date_1", "price_1", "date_2", "price_2"], "blocks": ["mb"]}
 FILE_WORDS = {"rents_input": ["rents", "input"], "rents_leases": ["lease"], "blocks": ["block"],
               "value_input": ["flats", "city"], "value_sales": ["sales"], "value_repeat": ["repeat"]}
 
@@ -133,6 +139,10 @@ def match_columns(key: str, real: list[str]) -> tuple[dict, list[str]]:
         if cand is None:
             close = difflib.get_close_matches(name.lower(), list(low), n=1, cutoff=0.75)
             cand = low[close[0]] if close else None
+        if cand is None and canon in PATTERNS:
+            used = set(expected.values()) | set(found.values())
+            fits = [c for c in real if c not in used and re.search(PATTERNS[canon], str(c), re.I)]
+            cand = fits[0] if len(fits) == 1 else None
         if cand and cand not in expected.values() and cand not in found.values():
             found[canon] = cand
         else:
@@ -163,8 +173,13 @@ def files_check(apply: bool) -> bool:
                 print(f"       {canon:<16s} <- '{real}'")
         if missing:
             print(f"       not found: {', '.join(missing)}. Real columns: {', '.join(map(str, head.columns))}")
-            if key in ("rents_input", "value_input"):
+            blocking = [m for m in missing if key in ("rents_input", "value_input") or m in REQUIRED.get(key, [])]
+            if blocking:
                 all_ok = False
+                print(f"       BLOCKING: {', '.join(blocking)}. Add them by hand to schema_overrides.json, e.g. "
+                      f'{{"{key}": {{"{blocking[0]}": "<real column name>"}}}}')
+            else:
+                print("       (optional: the pipeline fills them with blanks)")
         dates = [c for c in head.columns if re.search(r"date|listed|seen", str(c), re.I)]
         if dates:
             d = pd.read_csv(p, usecols=dates, low_memory=False)

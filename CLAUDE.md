@@ -26,6 +26,9 @@ CSV: UTF-8, one header, one row per input gnaf_id, no blanks. Rents may end in .
 
 ## Commands
 ```
+python scripts/setup_tonight.py      # Friday: install, test, practice run, app check, outside data
+python scripts/go.py prepare|check [--apply]|run [--quick] [--task X]   # Saturday flow
+python scripts/run.py [--quick] [--task rents|valuation]                 # pipeline, any OS
 python scripts/make_mock_data.py      # synthetic files with the documented columns (before the day)
 python scripts/make_mock_exo.py       # synthetic outside files in the real raw formats
 python scripts/fetch_exo.py           # REAL outside data (laptop with internet)

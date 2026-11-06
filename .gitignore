@@ -15,3 +15,5 @@ outputs/*
 !outputs/exo_ablation.json
 !outputs/data_decisions.csv
 !outputs/eda.json
+exo_for_teammates.zip
+.venv/

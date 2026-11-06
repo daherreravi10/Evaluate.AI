@@ -3,29 +3,38 @@
 Goal: **both CSVs valid and pushed by 1:00 pm**, then use the rest of the time to improve them and
 tell the story. A perfect CSV at 3:05 does not count.
 
-## Friday
+## Friday night (about 30 minutes, mostly waiting)
 
 - [ ] Reply **ROOM** to Luke's email (otherwise the place goes to someone else).
 - [ ] Join Slack and form a team (2 to 6 people, **all of whom were already offered a place**).
 - [ ] Pick the team name. The CSV slug comes from it: `Data Wranglers` → `data-wranglers`.
-- [ ] Create an empty **public** GitHub repo and give everyone access.
-- [ ] On your laptop: `pip install -r requirements.txt`, then `python scripts/make_mock_data.py` and
-      `bash scripts/run_all.sh --quick`. If it finishes cleanly on mock data, only the files change on Saturday.
-- [ ] **Outside data, tonight** (needs internet, not the key): `python scripts/fetch_exo.py`, then
-      `python -m src.exo.build`. Anything that fails prints where to download it by hand into
-      `data/exo/raw/<source>/`. Copy the whole `data/exo/` folder to every laptop (never to the repo).
-- [ ] Try `streamlit run app/app.py` (Kerbside, the demo app; fonts and the map library are bundled, so it
-      works offline except the street background) and record 10 s of screen to check the recorder works.
+- [ ] Unzip the kit, open a terminal in its folder, make a virtual environment and run the setup:
+
+      python -m venv .venv
+      source .venv/bin/activate          (Windows: .venv\Scripts\activate)
+      python scripts/setup_tonight.py
+
+  It installs the packages, runs the tests, does a full practice run, checks the app, downloads the
+  free outside data and prints a PASS / FAIL table. Outside-data FAILs are optional; the rest must PASS.
+  For each outside source that fails it says where to download the file by hand (then run
+  `python scripts/setup_tonight.py --only-downloads` again).
+- [ ] Open `.env` (created by the setup) and set `TEAM_NAME=` to the registered name.
+- [ ] Teammates: same three commands on their laptops with `--skip-downloads`, then unzip
+      `exo_for_teammates.zip` (made by the setup) inside their repo folder.
+- [ ] GitHub: create the team repo (private for now is fine), push the kit, add teammates. Make it
+      **public** before 3 pm. Never commit `.env`, `data/` or `exo_for_teammates.zip` (.gitignore does this).
+- [ ] Claude Code installed and signed in on the laptop that drives the work.
+- [ ] Try `streamlit run app/app.py` and record 10 s of screen to check the recorder works.
       Bad wifi at the venue? `KERBSIDE_BASEMAP=0 streamlit run app/app.py` drops the street background.
-- [ ] `python scripts/fetch_exo.py` now also fetches `places` (hospitals, shops, stations, bus routes,
-      construction) for "Around this flat". Then `python -m src.exo.build`.
 - [ ] Email Luke (a written answer removes the risk):
-  1. May we use a *For Sale* advert dated before 31 August for a flat that sold after it?
+  1. May we bring code we prepared before the day (a starter pipeline), as long as everything that
+     uses the data is run on the day?
+  2. May we use a *For Sale* advert dated before 31 August for a flat that sold after it?
      (The rules allow it as written, but better to confirm.)
-  2. Do one `pitch.mp4` and one `demo.mp4` cover two tasks, or do you expect one per task?
-  3. Do the past-leases and sales files arrive already cut at the task date, or should we filter
+  3. Do one `pitch.mp4` and one `demo.mp4` cover two tasks, or do you expect one per task?
+  4. Do the past-leases and sales files arrive already cut at the task date, or should we filter
      them? (The kit filters them either way.)
-  4. The guide says "Choose one or more" tasks, but the form lets us pick only one. We will pick
+  5. The guide says "Choose one or more" tasks, but the form lets us pick only one. We will pick
      Task 4 on the form and also hand in Task 5 from the same repo. Is that right?
 
 ## Saturday, before 10 am
@@ -33,6 +42,20 @@ tell the story. A perfect CSV at 3:05 does not count.
 - [ ] Have breakfast. Laptop and charger. Claude Code signed in.
 - [ ] **One person** registers the team on the Google form: members + **Task 4** (the form allows one).
       If the form has a notes field, add "also submitting Task 5". Say the same in Slack.
+- [ ] `python scripts/go.py prepare` — wipes the practice data and practice outputs (keeps outside data).
+
+## Saturday, 11:00: the only steps that touch the real data
+
+    1. Save the six emailed CSVs into data/supplied/ (any file name close to the expected one is fine)
+    2. Paste the key into .env:  MICROBURBS_API_KEY=...
+    3. python scripts/go.py check            # key, files, rows, columns, dates
+    4. python scripts/go.py check --apply    # only if it proposed column matches or a renamed file
+    5. python scripts/go.py run --quick      # first real CSVs + report in ~2 min -> commit and push
+    6. python scripts/go.py run              # full run, ~4 min
+    7. streamlit run app/app.py
+
+If `check` says BLOCKING for a column it could not match, write the real name into
+`schema_overrides.json` (it shows the exact line) and run `check` again.
 
 ## Two tasks without risking either
 
@@ -46,7 +69,8 @@ and there is one overall ranking. So Task 5 is extra chances, as long as it neve
 - **Run times measured on mock data of the real size** (2-core cloud machine, so a normal laptop should be as fast or faster):
   Task 4 full ~1:40 min, quick ~1:05 · Task 5 full ~1:50 min, quick ~1:05 · outside-data ablation ~8 min.
   Nothing here needs a GPU or a big machine.
-- **Only one laptop?** Run the tasks one after the other: `bash scripts/run_all.sh` (~5 min in total).
+- **Only one laptop?** Run the tasks one after the other: `python scripts/go.py run` (~5 min in total).
+- **Windows:** use `python scripts/run.py --task rents` instead of the `.sh` scripts.
 - **Fallback for Task 5:** by 1:00 pm push the `--quick` CSV even if Task 4 still needs work. A
   valid file with reasonable values beats a perfect one at 3:05.
 
@@ -65,12 +89,12 @@ and there is one overall ranking. So Task 5 is extra chances, as long as it neve
 |---|---|---|
 | 10:00 | Table, coffee, wifi, clone the repo, `pip install` | all |
 | 10:30 | Welcome and challenge: listen for any rule change to Tasks 4 and 5 | all |
-| 11:00 | Key and files arrive by email → `data/supplied/`, key in `.env` | 1 |
+| 11:00 | Key and files arrive by email → `data/supplied/`, key in `.env`, `python scripts/go.py check` (and `--apply`) | 1 |
 | 11:02 | `python -m src.client`: tests the key (ping, suburbs, one flat's history). If it fails, check `.env`. With the key set, the app's "Around this flat" also shows live transport and the suburb's development applications | 1 |
 | 11:05 | Ask Claude Code: *"use data-engineer: print the columns, dtypes, date range and 3 rows of every file in data/supplied and fix SCHEMA in src/config.py"* | 1 |
 | 11:15 | `python -m src.eda`: any column marked **review** (new in the real files) gets a decision and a reason in `src/decisions.py`; any **flag** is checked | 1 |
 | 11:20 | Delete `data/supplied/MOCK_DATA_DO_NOT_USE_FOR_PITCH.txt` and `data/mock_hidden/`. Run `python -m src.rents --quick` and `python -m src.valuation --quick` | 1 |
-| 11:40 | **First real version**: `bash scripts/run_all.sh`. Commit both CSVs + `report.html`. | 1 |
+| 11:40 | **First real version**: `python scripts/go.py run --quick`. Commit both CSVs + `report.html`. | 1 |
 | 11:40–1:00 | One change at a time, measured on the held-out check. Log what did not work. | 2, 3 |
 | 11:45 | `python scripts/exo_ablation.py --each` (~15 min, in parallel): keep only the outside sources that help. Switch the rest off with `EXO_SOURCES=...` | 1 |
 | 11:45 | Optional, in parallel: `python scripts/api_history.py --task rents --limit 3000` (~6 min) and re-run. Keep it only if the held-out score improves | 1 |

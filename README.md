@@ -64,14 +64,17 @@ model only learns the correction; a monotone constraint keeps a car space worth 
 ## How to run it
 
 ```bash
+python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-cp .env.example .env            # paste the team key; never commit .env
+cp .env.example .env            # set TEAM_NAME; paste the team key; never commit .env
 # put the six supplied CSVs in data/supplied/
-TEAM_NAME="Your Team" bash scripts/run_all.sh
-streamlit run app/app.py           # Kerbside, the demo app (local only)
+python scripts/go.py check      # key, files, columns (add --apply to accept proposed column matches)
+python scripts/go.py run        # tests, EDA, both tasks, validate, report
+streamlit run app/app.py        # Kerbside, the demo app (local only)
 ```
 
-One task at a time: `bash scripts/run_task.sh rents` or `bash scripts/run_task.sh valuation`.
+One task at a time: `python scripts/run.py --task rents` or `--task valuation`. Free outside data:
+`python scripts/fetch_exo.py` then `python -m src.exo.build` (optional; the pipeline runs without it).
 
 ## Files
 
