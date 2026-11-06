@@ -56,7 +56,7 @@ def download() -> None:
         r = requests.post(OVERPASS, data={"data": q}, timeout=300,
                           headers={"User-Agent": "microburbs-hackathon-team"})
         r.raise_for_status()
-        (RAW_POI if name == "poi" else RAW_ROADS).write_text(r.text)
+        (RAW_POI if name == "poi" else RAW_ROADS).write_bytes(r.content)
         print(f"  osm {name}: {len(r.json().get('elements', [])):,} elements")
 
 
@@ -79,14 +79,14 @@ def _kind(tags: dict) -> str | None:
 
 def parse() -> pd.DataFrame:
     rows = []
-    for el in json.loads(RAW_POI.read_text()).get("elements", []):
+    for el in json.loads(RAW_POI.read_text(encoding="utf-8")).get("elements", []):
         k = _kind(el.get("tags", {}))
         lat = el.get("lat", el.get("center", {}).get("lat"))
         lon = el.get("lon", el.get("center", {}).get("lon"))
         if k and lat is not None:
             rows.append((k, lat, lon, el.get("tags", {}).get("name")))
     if RAW_ROADS.exists():
-        for el in json.loads(RAW_ROADS.read_text()).get("elements", []):
+        for el in json.loads(RAW_ROADS.read_text(encoding="utf-8")).get("elements", []):
             for p in el.get("geometry", [])[::2]:  # every second vertex is plenty
                 rows.append(("main_road", p["lat"], p["lon"], el.get("tags", {}).get("name")))
     pts = pd.DataFrame(rows, columns=["kind", "lat", "lon", "name"])

@@ -118,7 +118,7 @@ OVERRIDES = ROOT / "schema_overrides.json"
 if OVERRIDES.exists():
     import json as _json
 
-    for _key, _cols in _json.loads(OVERRIDES.read_text()).items():
+    for _key, _cols in _json.loads(OVERRIDES.read_text(encoding="utf-8")).items():
         SCHEMA.setdefault(_key, {}).update(_cols)
 
 API_BASE = os.environ.get("MICROBURBS_API_BASE", "https://api-ht.microburbs.com.au")

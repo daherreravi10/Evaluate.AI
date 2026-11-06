@@ -18,6 +18,10 @@ from .loaders import building_key, floor_from_unit, load, merge_api_events
 from .metrics import bootstrap_ci, value_scores
 from .model import build, fit, group_importance, importance, snapshots_before
 
+RULE = "Asking price if listed, else last sale"
+BLEND = "Model and asking-or-last-sale, averaged"
+CANDIDATES = ["Our model (LightGBM, snapshots)", RULE, BLEND]
+
 STATIC = ["bedrooms", "bathrooms", "car_spaces", "flats_in_building", "floor", "latitude",
           "longitude", "suburb_code", "block_code", "unit_known"]
 
@@ -98,9 +102,13 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
         "Last sale moved by repeat-sales index": b_last,
         "Asking price if listed, else last sale": b_ask,
         "Our model (LightGBM, snapshots)": p_model,
+        BLEND: np.exp(0.5 * np.log(p_model) + 0.5 * np.log(b_ask)),
     }
     y = test.price.to_numpy()
     held = {k: value_scores(y, v) for k, v in methods.items()}
+    # what goes in the CSV: whichever of model, best simple rule or their blend wins on the held-out sales
+    handin = max(CANDIDATES, key=lambda k: (round(held[k]["share_within_10pct"], 4), -held[k]["median_abs_error"]))
+    print(f"  hand-in uses: {handin} ({held[handin]['share_within_10pct']:.1%} within 10% on held-out)")
     ci = bootstrap_ci(y, p_model, value_scores, "share_within_10pct")
     groups = group_importance(model, test, feats, value_scores, "share_within_10pct", higher_is_better=True)
     print("  held-out importance (points of within-10% lost if the group is scrambled):")
@@ -128,7 +136,8 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
                  ).to_parquet(C.OUT / "valuation_holdout.parquet")
 
     if heldout_only:
-        return {"heldout": held, "features": feats, "exo": exo.available(), "group_importance": groups}
+        return {"heldout": held, "features": feats, "exo": exo.available(), "group_importance": groups,
+                "handin": handin}
     print("final model")
     s_final = cut + pd.Timedelta(days=1)
     train_f = build(snapshots_before(s_final, n), mk, s_final)
@@ -137,6 +146,13 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
     pred = np.exp(model_f.predict(Xf))
     fallback = np.exp(Xf.base_ladj.fillna(np.log(sold.price.median())))
     pred = np.where(np.isfinite(pred) & (pred > 0), pred, fallback)
+    rule = np.exp(Xf.ask_ladj) if "ask_ladj" in Xf else pd.Series(np.nan, index=Xf.index)
+    rule = rule.fillna(np.exp(Xf.own_last_ladj)).fillna(np.exp(Xf.base_ladj)).to_numpy()
+    rule = np.where(np.isfinite(rule) & (rule > 0), rule, pred)
+    if handin == BLEND:
+        pred = np.exp(0.5 * np.log(pred) + 0.5 * np.log(rule))
+    elif handin == RULE:
+        pred = rule
     if judging_cap and best_cap != "none":
         print(f"  applying judging cap at ${int(best_cap):,} (held-out: {caps[best_cap]:.1%} vs {caps['none']:.1%})")
         pred = np.minimum(pred, int(best_cap))
@@ -163,7 +179,7 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
         "model_within10_227_draws": [float(np.percentile(draws, q)) for q in (5, 50, 95)],
         "importance": importance(model_f, feats),
         "group_importance": groups, "features": feats,
-        "by_anchor": by_kind, "cap_scan": caps, "best_cap": best_cap,
+        "by_anchor": by_kind, "cap_scan": caps, "best_cap": best_cap, "handin": handin,
         "judging_cap_applied": bool(judging_cap and best_cap != "none"),
         "share_test_with_asking": float(has_ask.mean()),
         "share_test_with_last_sale": float(test.own_last_ladj.notna().mean()),
@@ -173,7 +189,7 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
         "exo": exo.available(), "exo_features": [f for f in feats if f.startswith(("osm_", "cen_"))],
         "vg_sales_merged": exo_enabled("vg") and vg.OUT.exists(),
     }
-    (C.OUT / "metrics_valuation.json").write_text(json.dumps(metrics, indent=1))
+    (C.OUT / "metrics_valuation.json").write_text(json.dumps(metrics, indent=1), encoding="utf-8")
     return metrics
 
 

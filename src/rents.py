@@ -209,7 +209,7 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
         "rows_written": len(out), "csv": path.name,
         "exo": exo.available(), "exo_features": [f for f in feats if f.startswith(("osm_", "cen_", "bond_"))],
     }
-    (C.OUT / "metrics_rents.json").write_text(json.dumps(metrics, indent=1))
+    (C.OUT / "metrics_rents.json").write_text(json.dumps(metrics, indent=1), encoding="utf-8")
     return metrics
 
 

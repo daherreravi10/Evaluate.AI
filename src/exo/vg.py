@@ -68,12 +68,16 @@ def download(years=range(2015, 2026), cutoff: str = C.VALUE_CUTOFF) -> None:
             print(f"  vg: {len(targets)} files listed on the portal")
     except Exception:  # noqa: BLE001
         pass
-    got = 0
+    got, fails = 0, 0
     for url, name in targets:
         dest = RAW_DIR / name
         if dest.exists():
             got += 1
             continue
+        if fails >= 3 and got == 0:
+            print("  vg: the Valuer General blocks scripted downloads. It is optional: skip it, or open\n"
+                  f"      {PORTAL}\n      in a browser, download the yearly ZIPs you want and save them in {RAW_DIR}")
+            break
         try:
             r = requests.get(url, timeout=300, headers={"User-Agent": "microburbs-hackathon-team"})
             r.raise_for_status()
@@ -82,6 +86,7 @@ def download(years=range(2015, 2026), cutoff: str = C.VALUE_CUTOFF) -> None:
             dest.write_bytes(r.content)
             got += 1
         except Exception as e:  # noqa: BLE001
+            fails += 1
             print(f"  vg: {name} failed ({type(e).__name__})")
     print(f"  vg: {got}/{len(targets)} files in {RAW_DIR}. Missing ones: download from "
           f"https://valuation.property.nsw.gov.au/embed/propertySalesInformation into that folder")

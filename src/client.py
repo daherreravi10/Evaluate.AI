@@ -108,7 +108,7 @@ def get(path: str, refresh: bool = False, max_retries: int = 5, **params: Any) -
     h = hashlib.sha1((url + json.dumps(params, sort_keys=True)).encode()).hexdigest()
     f = CACHE_DIR / f"{h}.json"
     if f.exists() and not refresh:
-        cached = json.loads(f.read_text())
+        cached = json.loads(f.read_text(encoding="utf-8"))
         if cached.get("_status") == 403:
             raise MicroburbsError(403, cached.get("message", "outside coverage"), path)
         return cached["data"]
@@ -120,12 +120,12 @@ def get(path: str, refresh: bool = False, max_retries: int = 5, **params: Any) -
             time.sleep(_wait(resp, attempt))
             continue
         if resp.status_code == 403:
-            f.write_text(json.dumps({"_status": 403, "message": _message(resp)}))
+            f.write_text(json.dumps({"_status": 403, "message": _message(resp)}), encoding="utf-8")
         if resp.status_code != 200:
             raise MicroburbsError(resp.status_code, _message(resp), path)
         body = resp.json()
         data = body.get("data") if isinstance(body, dict) and "data" in body else body
-        f.write_text(json.dumps({"data": data}))
+        f.write_text(json.dumps({"data": data}), encoding="utf-8")
         return data
     raise AssertionError("unreachable")
 

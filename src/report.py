@@ -32,10 +32,12 @@ def _img(fig) -> str:
     return f'<img alt="" src="data:image/png;base64,{base64.b64encode(buf.getvalue()).decode()}">'
 
 
-def _bars(labels, values, fmt, xlabel, highlight_last=True):
+def _bars(labels, values, fmt, xlabel, highlight_last=True, highlight=None):
     fig, ax = plt.subplots(figsize=(6.4, 0.5 + 0.42 * len(labels)))
     colors = [BASE] * len(values)
-    if highlight_last:
+    if highlight is not None:
+        colors[highlight] = ACCENT
+    elif highlight_last:
         colors[-1] = ACCENT
     ax.barh(labels, values, color=colors, height=0.6)
     for i, v in enumerate(values):
@@ -75,7 +77,7 @@ def _md(text: str) -> str:
 def _notes() -> dict[str, str]:
     p = C.ROOT / "notes.md"
     secs, cur = {}, None
-    for line in (p.read_text().splitlines() if p.exists() else []):
+    for line in (p.read_text(encoding="utf-8").splitlines() if p.exists() else []):
         if line.startswith("## "):
             cur = line[3:].strip().lower()
             secs[cur] = ""
@@ -178,11 +180,12 @@ def valuation_section(m: dict) -> str:
     names = list(h)
     rows = [[k, f"{v['share_within_10pct']:.1%}", f"${v['median_abs_error']:,.0f}", f"{v['r2']:.3f}"]
             for k, v in h.items()]
-    best = h[names[-1]]
+    best = h[m.get("handin", names[-1])]
     lo, hi = m["model_within10_ci95"]
     d5, d50, d95 = m["model_within10_227_draws"]
     bars = _bars(names, [h[k]["share_within_10pct"] * 100 for k in names], lambda v: f"{v:.1f}%",
-                 "share within 10% of sale price (higher is better)")
+                 "share within 10% of sale price (higher is better)",
+                 highlight=names.index(m["handin"]) if m.get("handin") in names else None)
     ba = m.get("by_anchor", {})
     anchor = _table([[k, v["rows"], f"{v['share_within_10pct']:.1%}"] for k, v in ba.items()],
                     ["what we knew about the flat", "held-out sales", "within 10%"])
@@ -195,7 +198,8 @@ def valuation_section(m: dict) -> str:
 $1.2M valued within 10% ({m['test_from']} to {m['test_to']}); median miss ${best['median_abs_error']:,.0f};
 R² {best['r2']:.3f}. 95% interval: {lo:.1%} to {hi:.1%}.</p>
 <h3>Held-out check</h3>
-<p>Split date <b>{m['split']}</b>: built from sales before it, tested on {m['test_rows']:,} later sales up to
+<p>The CSV uses <b>{html.escape(m.get("handin", names[-1]))}</b>, the best of the model, the simple rule and
+their average on these held-out sales. Split date <b>{m['split']}</b>: built from sales before it, tested on {m['test_rows']:,} later sales up to
 {m['cutoff']} (flats only, under $1.2M, as the judges score). No missing predictions: every one of the
 {m['rows_written']:,} addresses has a value.</p>
 {_table(rows, ["method", "within 10%", "median miss", "R²"])}
@@ -252,7 +256,7 @@ def decisions_section() -> str:
     if not p.exists():
         return "<h2>How we chose the data</h2><p><em>(run python -m src.eda)</em></p>"
     d = pd.read_csv(p)
-    eda = json.loads((C.OUT / "eda.json").read_text()) if (C.OUT / "eda.json").exists() else {}
+    eda = json.loads((C.OUT / "eda.json").read_text(encoding="utf-8")) if (C.OUT / "eda.json").exists() else {}
     ck = eda.get("checks", {})
     titles = dict(zip(d.file, d.file_title))
 
@@ -297,7 +301,7 @@ def decisions_section() -> str:
         mp = C.OUT / f"metrics_{task}.json"
         if not mp.exists():
             continue
-        g = json.loads(mp.read_text()).get("group_importance")
+        g = json.loads(mp.read_text(encoding="utf-8")).get("group_importance")
         if not g:
             continue
         rows = [[html.escape(x["group"]), x["n_features"], fmt(x["worse_by"]),
@@ -368,10 +372,10 @@ def build() -> str:
     for task, fn in (("rents", rents_section), ("valuation", valuation_section)):
         p = C.OUT / f"metrics_{task}.json"
         if p.exists():
-            parts.append(fn(json.loads(p.read_text())))
+            parts.append(fn(json.loads(p.read_text(encoding="utf-8"))))
     ab = C.OUT / "exo_ablation.json"
     if ab.exists():
-        a = json.loads(ab.read_text())
+        a = json.loads(ab.read_text(encoding="utf-8"))
         rows = []
         for task, r in a["scores"].items():
             for name, v in r.items():

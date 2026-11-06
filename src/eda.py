@@ -157,7 +157,7 @@ def run() -> dict:
         ck["value_for_sale_adverts"] = int((~typ.str.startswith("sold")).sum())
     summary["decision_counts"] = dec.groupby(["file", "status"]).size().unstack(fill_value=0).to_dict("index")
     summary["flags"] = dec[dec.flag != ""][["file", "column", "flag"]].to_dict("records")
-    (C.OUT / "eda.json").write_text(json.dumps(summary, indent=1, default=str))
+    (C.OUT / "eda.json").write_text(json.dumps(summary, indent=1, default=str), encoding="utf-8")
 
     print(f"[eda] {len(dec)} columns across {len(frames)} files -> {C.OUT / 'data_decisions.csv'}")
     print(dec.groupby("status").size().to_string())

@@ -71,7 +71,7 @@ def download() -> None:
         r = requests.post(OVERPASS, data={"data": q}, timeout=400,
                           headers={"User-Agent": "microburbs-hackathon-team"})
         r.raise_for_status()
-        (RAW_POI if name == "poi" else RAW_BUS).write_text(r.text)
+        (RAW_POI if name == "poi" else RAW_BUS).write_bytes(r.content)
         print(f"  places {name}: {len(r.json().get('elements', [])):,} elements")
 
 
@@ -116,7 +116,7 @@ def _detail(k: str, t: dict) -> str:
 
 def parse() -> pd.DataFrame:
     rows = []
-    for el in json.loads(RAW_POI.read_text()).get("elements", []):
+    for el in json.loads(RAW_POI.read_text(encoding="utf-8")).get("elements", []):
         t = el.get("tags", {})
         k = _kind(t)
         lat = el.get("lat", el.get("center", {}).get("lat"))
@@ -125,7 +125,7 @@ def parse() -> pd.DataFrame:
             rows.append({"kind": k, "name": t.get("name") or "", "lat": lat, "lon": lon, "routes": "",
                          "detail": _detail(k, t), "osm_id": f"{el.get('type', 'n')[0]}{el.get('id')}"})
     if RAW_BUS.exists():
-        els = json.loads(RAW_BUS.read_text()).get("elements", [])
+        els = json.loads(RAW_BUS.read_text(encoding="utf-8")).get("elements", [])
         serve: dict[int, set] = {}
         for el in els:
             if el.get("type") == "relation":

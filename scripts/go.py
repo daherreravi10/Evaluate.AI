@@ -189,10 +189,10 @@ def files_check(apply: bool) -> bool:
                     print(f"       {c}: {x.min():%Y-%m-%d} to {x.max():%Y-%m-%d}")
     if overrides:
         if apply:
-            cur = json.loads(C.OVERRIDES.read_text()) if C.OVERRIDES.exists() else {}
+            cur = json.loads(C.OVERRIDES.read_text(encoding="utf-8")) if C.OVERRIDES.exists() else {}
             for k, v in overrides.items():
                 cur.setdefault(k, {}).update(v)
-            C.OVERRIDES.write_text(json.dumps(cur, indent=1))
+            C.OVERRIDES.write_text(json.dumps(cur, indent=1), encoding="utf-8")
             say(True, "column matches saved to schema_overrides.json (re-run check to confirm)")
         else:
             say(None, "column matches proposed above: re-run with --apply to use them")

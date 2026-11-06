@@ -64,7 +64,6 @@ model only learns the correction; a monotone constraint keeps a car space worth 
 ## How to run it
 
 ```bash
-python -m venv .venv && source .venv/bin/activate     # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 cp .env.example .env            # set TEAM_NAME; paste the team key; never commit .env
 # put the six supplied CSVs in data/supplied/

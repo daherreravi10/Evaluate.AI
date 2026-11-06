@@ -1,0 +1,338 @@
+{
+ "task": "valuation",
+ "cutoff": "2026-08-31",
+ "split": "2026-05-01",
+ "horizon_months": 2,
+ "snapshots": 4,
+ "train_rows_holdout": 5831,
+ "train_rows_final": 5918,
+ "test_rows": 2173,
+ "test_from": "2026-05-01",
+ "test_to": "2026-08-30",
+ "heldout": {
+  "Suburb x bedrooms median": {
+   "n": 2173,
+   "share_within_10pct": 0.30372756557754255,
+   "hits_within_10pct": 660,
+   "median_abs_error": 149214.65180756815,
+   "r2": -0.09503216225743105,
+   "blank": 0
+  },
+  "Last sale moved by repeat-sales index": {
+   "n": 2173,
+   "share_within_10pct": 0.5430280717901519,
+   "hits_within_10pct": 1180,
+   "median_abs_error": 73726.66409666091,
+   "r2": 0.5396814640317686,
+   "blank": 0
+  },
+  "Asking price if listed, else last sale": {
+   "n": 2173,
+   "share_within_10pct": 0.5931891394385642,
+   "hits_within_10pct": 1289,
+   "median_abs_error": 64295.11456377152,
+   "r2": 0.5925922031982934,
+   "blank": 0
+  },
+  "Our model (LightGBM, snapshots)": {
+   "n": 2173,
+   "share_within_10pct": 0.5844454670961804,
+   "hits_within_10pct": 1270,
+   "median_abs_error": 65742.75142273575,
+   "r2": 0.6259022915828875,
+   "blank": 0
+  }
+ },
+ "model_within10_ci95": [
+  0.5628163828808099,
+  0.6058559595029913
+ ],
+ "model_within10_227_draws": [
+  0.5284140969162996,
+  0.5814977973568282,
+  0.6389867841409692
+ ],
+ "importance": [
+  {
+   "feature": "anchor_ladj",
+   "share": 0.060913682595561965
+  },
+  {
+   "feature": "bldg_bed_med_rel",
+   "share": 0.06022761049117213
+  },
+  {
+   "feature": "bldg_med",
+   "share": 0.05764555201192775
+  },
+  {
+   "feature": "own_last_age_y",
+   "share": 0.05175664943827851
+  },
+  {
+   "feature": "near_dist_km",
+   "share": 0.051533649423293276
+  },
+  {
+   "feature": "own_last_ladj_rel",
+   "share": 0.05051203675279492
+  },
+  {
+   "feature": "mb_med",
+   "share": 0.05032231009245834
+  },
+  {
+   "feature": "near_med",
+   "share": 0.04974637490720531
+  },
+  {
+   "feature": "longitude",
+   "share": 0.04898430911466367
+  },
+  {
+   "feature": "latitude",
+   "share": 0.04703414178806355
+  },
+  {
+   "feature": "floor",
+   "share": 0.04594480212122525
+  },
+  {
+   "feature": "bldg_bed_med",
+   "share": 0.044154109211705574
+  },
+  {
+   "feature": "mb_n",
+   "share": 0.042254585790032655
+  },
+  {
+   "feature": "flats_in_building",
+   "share": 0.04158933977613573
+  },
+  {
+   "feature": "own_last_ladj",
+   "share": 0.03956519138863886
+  }
+ ],
+ "group_importance": [
+  {
+   "group": "Starting guess (anchor)",
+   "features": [
+    "anchor_ladj",
+    "anchor_kind"
+   ],
+   "n_features": 2,
+   "score_without": 0.23316459579690138,
+   "worse_by": 0.351280871299279
+  },
+  {
+   "group": "Same building",
+   "features": [
+    "bldg_bed_med",
+    "bldg_bed_n",
+    "bldg_med",
+    "bldg_n",
+    "bldg_bed_med_rel"
+   ],
+   "n_features": 5,
+   "score_without": 0.579536738763614,
+   "worse_by": 0.004908728332566392
+  },
+  {
+   "group": "Market trend",
+   "features": [
+    "idx_12m"
+   ],
+   "n_features": 1,
+   "score_without": 0.5844454670961804,
+   "worse_by": 0.0
+  },
+  {
+   "group": "Flat attributes",
+   "features": [
+    "bedrooms",
+    "bathrooms",
+    "car_spaces",
+    "flats_in_building",
+    "floor",
+    "unit_known"
+   ],
+   "n_features": 6,
+   "score_without": 0.5853658536585367,
+   "worse_by": -0.0009203865623562679
+  },
+  {
+   "group": "The flat's own history",
+   "features": [
+    "own_last_ladj",
+    "own_last_age_y",
+    "own_n",
+    "ask_ladj",
+    "ask_age_d",
+    "own_last_ladj_rel",
+    "ask_ladj_rel"
+   ],
+   "n_features": 7,
+   "score_without": 0.5856726491793219,
+   "worse_by": -0.0012271820831415425
+  },
+  {
+   "group": "Same block",
+   "features": [
+    "block_code",
+    "mb_med",
+    "mb_n"
+   ],
+   "n_features": 3,
+   "score_without": 0.5864396379812855,
+   "worse_by": -0.0019941708851051176
+  },
+  {
+   "group": "Suburb",
+   "features": [
+    "suburb_code",
+    "sub_bed_med",
+    "sub_bed_n",
+    "sub_med",
+    "sub_n",
+    "base_ladj"
+   ],
+   "n_features": 6,
+   "score_without": 0.5908881730326737,
+   "worse_by": -0.00644270593649332
+  },
+  {
+   "group": "Nearest buildings",
+   "features": [
+    "near_med",
+    "near_dist_km"
+   ],
+   "n_features": 2,
+   "score_without": 0.5915017640742445,
+   "worse_by": -0.007056296978064092
+  },
+  {
+   "group": "Location",
+   "features": [
+    "latitude",
+    "longitude"
+   ],
+   "n_features": 2,
+   "score_without": 0.5945697192820985,
+   "worse_by": -0.010124252185918059
+  },
+  {
+   "group": "(all features as used)",
+   "score_without": 0.5844454670961804,
+   "worse_by": 0.0,
+   "features": [],
+   "n_features": 0
+  }
+ ],
+ "features": [
+  "bedrooms",
+  "bathrooms",
+  "car_spaces",
+  "flats_in_building",
+  "floor",
+  "latitude",
+  "longitude",
+  "suburb_code",
+  "block_code",
+  "unit_known",
+  "own_last_ladj",
+  "own_last_age_y",
+  "own_n",
+  "bldg_bed_med",
+  "bldg_bed_n",
+  "bldg_med",
+  "bldg_n",
+  "mb_med",
+  "mb_n",
+  "sub_bed_med",
+  "sub_bed_n",
+  "sub_med",
+  "sub_n",
+  "near_med",
+  "near_dist_km",
+  "ask_ladj",
+  "ask_age_d",
+  "own_last_ladj_rel",
+  "bldg_bed_med_rel",
+  "ask_ladj_rel",
+  "base_ladj",
+  "anchor_ladj",
+  "anchor_kind",
+  "idx_12m"
+ ],
+ "by_anchor": {
+  "had a For Sale advert": {
+   "n": 276,
+   "share_within_10pct": 0.8913043478260869,
+   "hits_within_10pct": 246,
+   "median_abs_error": 30371.565802977362,
+   "r2": 0.933241971862162,
+   "blank": 0,
+   "rows": 276
+  },
+  "had a past sale": {
+   "n": 1300,
+   "share_within_10pct": 0.6330769230769231,
+   "hits_within_10pct": 823,
+   "median_abs_error": 58237.77226290869,
+   "r2": 0.8039488938574915,
+   "blank": 0,
+   "rows": 1300
+  },
+  "building only": {
+   "n": 547,
+   "share_within_10pct": 0.3235831809872029,
+   "hits_within_10pct": 177,
+   "median_abs_error": 136695.89044606476,
+   "r2": 0.016868543269486946,
+   "blank": 0,
+   "rows": 547
+  },
+  "suburb only": {
+   "n": 50,
+   "share_within_10pct": 0.48,
+   "hits_within_10pct": 24,
+   "median_abs_error": 78183.92882879029,
+   "r2": 0.40815825221778024,
+   "blank": 0,
+   "rows": 50
+  }
+ },
+ "cap_scan": {
+  "1050000": 0.6079153244362633,
+  "1100000": 0.6175793833410033,
+  "1150000": 0.606994937873907,
+  "1200000": 0.5959502991256328,
+  "1300000": 0.5858260469397146,
+  "none": 0.5844454670961804
+ },
+ "best_cap": "1100000",
+ "judging_cap_applied": false,
+ "share_test_with_asking": 0.12701334560515418,
+ "share_test_with_last_sale": 0.6884491486424298,
+ "floor_effect": {
+  "1": 965361.2655496805,
+  "5": 987514.5192955909,
+  "10": 990144.2516479068,
+  "20": 988007.0031918038,
+  "30": 993009.3216152902
+ },
+ "price_index_12m": 0.05506837111119256,
+ "rows_written": 181711,
+ "csv": "valuation_practice-team.csv",
+ "exo": {
+  "osm": false,
+  "places": false,
+  "census": false,
+  "bonds": false,
+  "vg": false,
+  "on": []
+ },
+ "exo_features": [],
+ "vg_sales_merged": false
+}

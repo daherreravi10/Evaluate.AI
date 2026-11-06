@@ -54,7 +54,7 @@ def mock_osm() -> None:
         pt({"leisure": "park"}, center=True)
     for _ in range(40):
         pt({"amenity": "school"}, center=True)
-    (osm.RAW_POI).write_text(json.dumps({"elements": els}))
+    (osm.RAW_POI).write_text(json.dumps({"elements": els}), encoding="utf-8")
     roads = []
     for k in range(12):
         lat0, lon0 = rng.uniform(s, n), rng.uniform(w, e)
@@ -62,7 +62,7 @@ def mock_osm() -> None:
         geom = [{"lat": lat0 + t * 0.002 * np.sin(ang), "lon": lon0 + t * 0.002 * np.cos(ang)}
                 for t in range(-25, 26)]
         roads.append({"type": "way", "id": 10_000 + k, "tags": {"highway": "primary"}, "geometry": geom})
-    osm.RAW_ROADS.write_text(json.dumps({"elements": roads}))
+    osm.RAW_ROADS.write_text(json.dumps({"elements": roads}), encoding="utf-8")
     print(f"osm: {len(els)} POIs, {len(roads)} roads")
 
 
@@ -232,7 +232,7 @@ def mock_places() -> None:
         add({"building": "construction", "construction": rng.choice(["apartments", "office", "hotel"]),
              "name": f"Project {k + 1} (practice)"}, area=True)
     add({"railway": "construction", "construction": "subway", "name": "New metro line (practice)"}, area=True)
-    places.RAW_POI.write_text(json.dumps({"elements": els}))
+    places.RAW_POI.write_text(json.dumps({"elements": els}), encoding="utf-8")
     stops = [{"type": "node", "id": 900_000 + k, "lat": rng.uniform(s, n), "lon": rng.uniform(w, e),
               "tags": {"highway": "bus_stop", "name": f"Stop {k + 1}"}} for k in range(500)]
     rels = []
@@ -240,7 +240,7 @@ def mock_places() -> None:
         mem = rng.choice(len(stops), 60, replace=False)
         rels.append({"type": "relation", "id": 7_000 + k, "tags": {"route": "bus", "ref": ref},
                      "members": [{"type": "node", "ref": stops[j]["id"], "role": "platform"} for j in mem]})
-    places.RAW_BUS.write_text(json.dumps({"elements": rels + stops}))
+    places.RAW_BUS.write_text(json.dumps({"elements": rels + stops}), encoding="utf-8")
     print(f"places: {len(els)} places, {len(stops)} bus stops, {len(rels)} routes")
 
 
@@ -252,4 +252,4 @@ if __name__ == "__main__":
     mock_census()
     mock_bonds()
     mock_vg()
-    (RAW / "MOCK_EXO_DO_NOT_USE_FOR_PITCH.txt").write_text("synthetic outside files\n")
+    (RAW / "MOCK_EXO_DO_NOT_USE_FOR_PITCH.txt").write_text("synthetic outside files\n", encoding="utf-8")

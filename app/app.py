@@ -19,7 +19,6 @@ import numpy as np
 import pandas as pd
 import pydeck as pdk
 import streamlit as st
-import streamlit.components.v1 as components
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src import config as C  # noqa: E402
@@ -146,7 +145,7 @@ def load_parquet(name: str) -> pd.DataFrame | None:
 @st.cache_data
 def metrics(name: str) -> dict | None:
     p = C.OUT / f"metrics_{name}.json"
-    return json.loads(p.read_text()) if p.exists() else None
+    return json.loads(p.read_text(encoding="utf-8")) if p.exists() else None
 
 
 def basemap() -> dict:
@@ -273,7 +272,7 @@ def value_card(f: pd.Series, m: dict | None) -> str:
         why = f"Started from similar flats in {html.escape(f.suburb)}."
     sure = ""
     if m:
-        h = m["heldout"]["Our model (LightGBM, snapshots)"]
+        h = m["heldout"][m.get("handin", "Our model (LightGBM, snapshots)")]
         sure = f" On sales it never saw, {h['share_within_10pct']:.0%} of our values were within 10%."
     return f"""<div class="card"><h3>Sale value, 31 August 2026</h3>
 <div class="big">{money(f.v_value, 1000)}</div><p>{why}{sure}</p></div>"""
@@ -292,6 +291,16 @@ KEY = [("H", "hospital", "Hospital"), ("M", "mall", "Shopping centre"), ("S", "s
 
 def hexc(rgb) -> str:
     return "#%02x%02x%02x" % tuple(rgb)
+
+
+def embed_html(page: str, height: int) -> None:
+    """st.iframe on new Streamlit, components.html on older ones (removed in recent releases)."""
+    if hasattr(st, "iframe"):
+        st.iframe(page, height=height)
+    else:
+        import streamlit.components.v1 as components
+
+        components.html(page, height=height)
 
 
 @st.cache_resource
@@ -368,7 +377,7 @@ def around(f: pd.Series) -> None:
         buses = near[(near.kind == "bus") & (near.dist_km <= 0.8)]
         buses = buses.assign(tip="Bus stop " + buses.name + ": " +
                              buses.routes.where(buses.routes != "", "routes not listed"))
-        components.html(leaflet_map(lat, lon, f.label, show, buses), height=430)
+        embed_html(leaflet_map(lat, lon, f.label, show, buses), height=430)
         keys = "".join(f'<span><i class="chip" style="background:{hexc(KIND_COLOR[k])};'
                        f'{"color:#1B2422" if k == "construction" else ""}">{l}</i>{t}</span>'
                        for l, k, t in KEY)
@@ -604,8 +613,9 @@ with tab_proof:
         vals = [v[key] for _, v in items]
         top = max(vals) if higher_better else max(vals) * 1.05
         rows = ""
+        chosen = m.get("handin", "Our model (LightGBM, snapshots)")
         for name, v in items:
-            ours = name.startswith("Our model")
+            ours = name == chosen
             label = "Kerbside" if ours else name
             w = 100 * v[key] / top
             rows += (f'<div class="name{" ours" if ours else ""}">{html.escape(label)}'

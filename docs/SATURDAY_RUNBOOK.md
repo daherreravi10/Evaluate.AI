@@ -8,16 +8,23 @@ tell the story. A perfect CSV at 3:05 does not count.
 - [ ] Reply **ROOM** to Luke's email (otherwise the place goes to someone else).
 - [ ] Join Slack and form a team (2 to 6 people, **all of whom were already offered a place**).
 - [ ] Pick the team name. The CSV slug comes from it: `Data Wranglers` → `data-wranglers`.
-- [ ] Unzip the kit, open a terminal in its folder, make a virtual environment and run the setup:
+- [ ] Unzip the kit, open a terminal in its folder and run the setup (one line at a time):
 
-      python -m venv .venv
-      source .venv/bin/activate          (Windows: .venv\Scripts\activate)
+  Windows (PowerShell):
+
+      python scripts/setup_tonight.py
+
+  macOS / Linux:
+
+      python3 -m venv .venv
+      source .venv/bin/activate
       python scripts/setup_tonight.py
 
   It installs the packages, runs the tests, does a full practice run, checks the app, downloads the
   free outside data and prints a PASS / FAIL table. Outside-data FAILs are optional; the rest must PASS.
-  For each outside source that fails it says where to download the file by hand (then run
-  `python scripts/setup_tonight.py --only-downloads` again).
+  To retry only the downloads: `python scripts/setup_tonight.py --only-downloads` (finished ones are skipped).
+  The NSW Valuer General blocks scripted downloads: skip it (optional) or save its ZIPs from the
+  browser into `data/exo/raw/vg/`.
 - [ ] Open `.env` (created by the setup) and set `TEAM_NAME=` to the registered name.
 - [ ] Teammates: same three commands on their laptops with `--skip-downloads`, then unzip
       `exo_for_teammates.zip` (made by the setup) inside their repo folder.
