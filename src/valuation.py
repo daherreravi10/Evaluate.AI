@@ -16,7 +16,7 @@ from .features import add_keys, snapshot_features
 from .exo import build as exo, enabled as exo_enabled, vg
 from .loaders import building_key, floor_from_unit, load, merge_api_events
 from .metrics import bootstrap_ci, value_scores
-from .model import build, fit, importance, snapshots_before
+from .model import build, fit, group_importance, importance, snapshots_before
 
 STATIC = ["bedrooms", "bathrooms", "car_spaces", "flats_in_building", "floor", "latitude",
           "longitude", "suburb_code", "block_code", "unit_known"]
@@ -102,6 +102,10 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
     y = test.price.to_numpy()
     held = {k: value_scores(y, v) for k, v in methods.items()}
     ci = bootstrap_ci(y, p_model, value_scores, "share_within_10pct")
+    groups = group_importance(model, test, feats, value_scores, "share_within_10pct", higher_is_better=True)
+    print("  held-out importance (points of within-10% lost if the group is scrambled):")
+    for g in groups[:-1]:
+        print(f"    {g['group']:28s} {-g['worse_by'] * 100:+.1f} pts")
     # the judges score only 227 sales: how much does luck move a score that size?
     rng = np.random.default_rng(1)
     draws = [value_scores(y[i], p_model[i])["share_within_10pct"]
@@ -124,7 +128,7 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
                  ).to_parquet(C.OUT / "valuation_holdout.parquet")
 
     if heldout_only:
-        return {"heldout": held, "features": feats, "exo": exo.available()}
+        return {"heldout": held, "features": feats, "exo": exo.available(), "group_importance": groups}
     print("final model")
     s_final = cut + pd.Timedelta(days=1)
     train_f = build(snapshots_before(s_final, n), mk, s_final)
@@ -157,6 +161,7 @@ def run(quick: bool = False, judging_cap: bool = False, heldout_only: bool = Fal
         "model_within10_ci95": ci,
         "model_within10_227_draws": [float(np.percentile(draws, q)) for q in (5, 50, 95)],
         "importance": importance(model_f, feats),
+        "group_importance": groups, "features": feats,
         "by_anchor": by_kind, "cap_scan": caps, "best_cap": best_cap,
         "judging_cap_applied": bool(judging_cap and best_cap != "none"),
         "share_test_with_asking": float(has_ask.mean()),

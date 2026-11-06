@@ -175,6 +175,132 @@ R² {best['r2']:.3f}. 95% interval: {lo:.1%} to {hi:.1%}.</p>
 """
 
 
+def _ltable(rows: list[list], head: list[str]) -> str:
+    return _table(rows, head).replace("<table>", '<table class="left">', 1)
+
+
+def _pct(v) -> str:
+    return "" if v is None or (isinstance(v, float) and v != v) else f"{float(v):.0%}"
+
+
+def _sig(v) -> str:
+    return "" if v is None or (isinstance(v, float) and v != v) else f"{float(v):.2f}"
+
+
+def timeline(eda: dict) -> str:
+    ck = eda.get("checks", {})
+    series = [("Rental adverts per month (Task 4)", ck.get("rents_monthly_adverts"), C.RENT_SPLIT, C.RENT_CUTOFF),
+              ("Sales per month (Task 5)", ck.get("value_monthly_sales"), C.VALUE_SPLIT, C.VALUE_CUTOFF)]
+    series = [x for x in series if x[1]]
+    if not series:
+        return ""
+    fig, axes = plt.subplots(len(series), 1, figsize=(6.4, 2.3 * len(series)), squeeze=False)
+    for ax, (title, m, split, cut) in zip(axes[:, 0], series):
+        x = pd.PeriodIndex(list(m), freq="M").to_timestamp()
+        ax.plot(x, list(m.values()), color=ACCENT, lw=1.4)
+        ax.axvline(pd.Timestamp(split), color=MUTED, ls="--", lw=1)
+        ax.axvline(pd.Timestamp(cut), color=INK, lw=1)
+        ymax = max(m.values())
+        ax.text(pd.Timestamp(split), ymax, " split ", ha="right", va="top", color=MUTED, fontsize=8)
+        ax.text(pd.Timestamp(cut), ymax, " cut-off", ha="left", va="top", color=INK, fontsize=8)
+        ax.set_title(title, loc="left", fontsize=10, color=INK)
+    fig.tight_layout()
+    return _img(fig)
+
+
+def decisions_section() -> str:
+    p = C.OUT / "data_decisions.csv"
+    if not p.exists():
+        return "<h2>How we chose the data</h2><p><em>(run python -m src.eda)</em></p>"
+    d = pd.read_csv(p)
+    eda = json.loads((C.OUT / "eda.json").read_text()) if (C.OUT / "eda.json").exists() else {}
+    ck = eda.get("checks", {})
+    titles = dict(zip(d.file, d.file_title))
+
+    summ = []
+    for f, g in d.groupby("file", sort=False):
+        st = g.status.value_counts()
+        summ.append([titles[f], len(g), st.get("feature", 0), st.get("derived", 0),
+                     st.get("key", 0) + st.get("label", 0), st.get("not used", 0), st.get("review", 0)])
+    flags = d[d.flag.fillna("") != ""]
+    flag_html = ""
+    if len(flags):
+        flag_html = '<p class="warn"><b>To review:</b> ' + "; ".join(
+            f"{html.escape(r.file)}.{html.escape(r.column)}: {html.escape(r.flag)}" for r in flags.itertuples()) + "</p>"
+
+    left = d[d.status == "not used"]
+    left_rows = [[f"<code>{html.escape(r.column)}</code><br><span class=sub>{html.escape(titles[r.file])}</span>",
+                  _pct(r.missing_share), _sig(r.signal), html.escape(r.reason)] for r in left.itertuples()]
+
+    facts = []
+    if "rents_car_spaces_2plus_share" in ck:
+        facts.append(f"Only {ck['rents_car_spaces_2plus_share']:.1%} of flats have 2+ car spaces, so the yes/no "
+                     f"<code>car_space</code> carries what the hand-in needs.")
+    if "rents_attrs_last_seen_after_cutoff" in ck:
+        facts.append(f"{ck['rents_attrs_last_seen_after_cutoff']:.1%} of <code>attrs_last_seen</code> dates and "
+                     f"{ck['rents_first_listed_after_cutoff']:.1%} of <code>first_ever_listed</code> dates fall after "
+                     f"31 July 2026.")
+    if "rents_leases_after_cutoff_dropped" in ck:
+        facts.append(f"{ck['rents_leases_after_cutoff_dropped']:,} past adverts dated after 31 July and "
+                     f"{ck.get('value_sales_after_cutoff_dropped', 0):,} sales after 31 August were dropped.")
+    if "value_floor_from_unit_share" in ck:
+        facts.append(f"The floor can be read from the unit number for {ck['value_floor_from_unit_share']:.0%} of "
+                     f"Task 5 rows; bedrooms are blank for {ck['value_bedrooms_blank_share']:.0%}.")
+    if "value_shop_office_rows" in ck:
+        facts.append(f"{ck['value_shop_office_rows']:,} Task 5 rows are shops or offices: valued (no blanks) "
+                     f"but kept out of training and our test, as the judges do.")
+
+    imp = []
+    for task, label, fmt in (("rents", "Task 4: extra median miss, $ per week",
+                              lambda v: f"{v:+.1f}"),
+                             ("valuation", "Task 5: within-10% points lost",
+                              lambda v: f"{-v * 100:+.1f}")):
+        mp = C.OUT / f"metrics_{task}.json"
+        if not mp.exists():
+            continue
+        g = json.loads(mp.read_text()).get("group_importance")
+        if not g:
+            continue
+        rows = [[html.escape(x["group"]), x["n_features"], fmt(x["worse_by"]),
+                 "<span class=sub>" + html.escape(", ".join(x["features"][:6]) +
+                                                  (" ..." if len(x["features"]) > 6 else "")) + "</span>"]
+                for x in g if x["features"]]
+        imp.append(f"<h3>{label}</h3>" + _ltable(rows, ["feature group", "features", "change", "includes"]))
+
+    per_file = []
+    for f, g in d.groupby("file", sort=False):
+        rows = [[f"<code>{html.escape(r.column)}</code>", html.escape(r.status),
+                 html.escape(str(r.becomes) if isinstance(r.becomes, str) else ""),
+                 _pct(r.missing_share), _sig(r.signal), html.escape(r.reason)] for r in g.itertuples()]
+        per_file.append(f"<details><summary>{html.escape(titles[f])} ({len(g)} columns)</summary>" +
+                        _ltable(rows, ["column", "decision", "becomes", "blank", "signal", "why"]) + "</details>")
+
+    return f"""
+<h2>How we chose the data</h2>
+<p>Every column of the six supplied files is listed here with what we did with it and why. The evidence
+is measured on the files by <code>python -m src.eda</code>; the reasons are kept in <code>src/decisions.py</code>,
+and the whole table is in <code>outputs/data_decisions.csv</code>. <b>Signal</b> is how strongly a column moves
+with each flat's latest price before the cut-off (0 to 1: rank correlation for numbers, correlation ratio for
+categories). A column can be left out despite a strong signal when it would let the model see the future.</p>
+{_ltable(summ, ["file", "columns", "feature", "derived", "key / label", "not used", "review"])}
+{flag_html}
+<h3>Left out, and why</h3>
+{_ltable(left_rows, ["column", "blank", "signal", "why"])}
+<h3>Checks behind the choices</h3>
+{"<ul>" + "".join(f"<li>{x}</li>" for x in facts) + "</ul>" if facts else ""}
+<h3>The data over time</h3>
+<p>Our held-out check trains on everything before the dashed line and tests on the months between it and
+the cut-off, the same shape as the judges' test.</p>
+{timeline(eda)}
+<h3>What the model actually needs (held-out)</h3>
+<p>Each group's columns are shuffled across the held-out rows, which removes their information, and the
+judges' metric is recomputed. Near zero means the group adds nothing on this test.</p>
+{"".join(imp)}
+<h3>Every column</h3>
+{"".join(per_file)}
+"""
+
+
 CSS = """
 :root{--ink:#1d2433;--muted:#6b7385;--line:#e3e6eb;--accent:#0f766e;--bg:#fbfbfa}
 *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);
@@ -190,6 +316,9 @@ th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line)}th{co
 font-weight:600}td:not(:first-child),th:not(:first-child){text-align:right}
 img{max-width:min(100%,620px);height:auto;display:block;margin:8px 0 16px}code{background:#eef0f3;padding:1px 4px;
 border-radius:3px}.warn{background:#fff4e5;border:1px solid #f3c98b;padding:10px 14px;border-radius:6px}
+.left td,.left th{text-align:left!important;vertical-align:top}.left .sub{margin:0;font-size:12px}
+details{margin:6px 0;background:#fff;border:1px solid var(--line);border-radius:6px;padding:8px 12px}
+summary{cursor:pointer;font-weight:600}details table{margin-top:10px}
 """
 
 
@@ -227,6 +356,7 @@ def build() -> str:
 {sec("insights")}
 <h2>Data</h2>
 {sec("data")}
+{decisions_section()}
 <h2>Method</h2>
 {sec("method")}
 {body}

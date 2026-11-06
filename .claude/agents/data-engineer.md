@@ -17,6 +17,10 @@ On a new file or endpoint, in this order:
 Never call the API outside `src/client.py`. Never loop over all flats. Never print the key.
 If an endpoint is slow, returns 429 or 403, stop and tell the human.
 
+Decisions: after fixing SCHEMA, run `python -m src.eda`. Every column marked "review" needs an
+entry in src/decisions.py (status + reason). A date column with values after the cut-off must never
+become a raw feature: list it in LOOKAHEAD and explain it.
+
 Outside data (src/exo/): after `python -m src.exo.build`, check each source's printout (rows,
 date range, match rate for VG). A VG match rate under ~60% means the address normaliser in
 src/exo/common.py needs a look: print 20 unmatched VG keys next to the nearest input keys.

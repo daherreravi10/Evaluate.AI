@@ -16,11 +16,14 @@ from .features import add_keys, snapshot_features
 from .exo import build as exo
 from .loaders import load, merge_api_events
 from .metrics import bootstrap_ci, rent_scores
-from .model import build, fit, importance, snapshots_before
+from .model import build, fit, group_importance, importance, snapshots_before
 
+# Every column choice is explained in src/decisions.py (and in report.html).
+# Not here on purpose: ever_advertised_for_lease and attrs_last_seen look ahead in time;
+# first_ever_listed is used only through a snapshot-safe age (see feature_frame).
 STATIC = ["bedrooms", "bathrooms", "floor_level", "flats_in_building", "block_new_homes_2021_2026",
-          "block_homes_2026", "ever_advertised_for_lease", "latitude", "longitude",
-          "suburb_code", "ptype_code", "first_listed_year", "block_growth", "people_per_home"]
+          "block_homes_2026", "latitude", "longitude", "suburb_code", "ptype_code",
+          "block_growth", "people_per_home"]
 
 
 def prepare():
@@ -29,7 +32,6 @@ def prepare():
         flats.suburb.fillna("").str.upper()
     flats["suburb_code"] = flats.suburb.astype("category").cat.codes
     flats["ptype_code"] = flats.property_type.astype("category").cat.codes
-    flats["first_listed_year"] = flats.first_ever_listed.dt.year
     try:
         blocks = load("blocks")
         blocks["block_growth"] = blocks.homes_2026 / blocks.homes_2021.replace(0, np.nan) - 1
@@ -58,6 +60,10 @@ def feature_frame(flats, lea, s):
     if "bond_pc_bed_lmed" in B:
         B["bond_rel"] = B.bond_pc_bed_lmed - F.base_ladj
     X = pd.concat([flats[static_cols(flats)], F, B], axis=1)
+    # years since first seen advertised, only if that happened before the snapshot:
+    # a later date would tell the model the flat is about to be advertised
+    first = flats.first_ever_listed.where(flats.first_ever_listed < s)
+    X["years_since_first_listed"] = (s - first).dt.days / 365.25
     return X, sbc, idx
 
 
@@ -117,13 +123,17 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
     y = test.price.to_numpy()
     held = {k: rent_scores(y, v) for k, v in methods.items()}
     ci = bootstrap_ci(y, p_model, rent_scores, "median_abs_error")
+    groups = group_importance(model, test, feats, rent_scores, "median_abs_error", higher_is_better=False)
+    print("  held-out importance (how much the median miss grows if the group is scrambled):")
+    for g in groups[:-1]:
+        print(f"    {g['group']:28s} {g['worse_by']:+.1f} $/wk")
     for k, v in held.items():
         print(f"  {k:38s} median miss ${v['median_abs_error']:.0f}  within $100 {v['share_within_100']:.1%}  R2 {v['r2']:.3f}")
     pd.DataFrame({"gnaf_id": test.gnaf_id, "date": test.date, "y": y, "car": test.car,
                   "suburb": tf.suburb, "bed": tf.bed, **{k: v for k, v in methods.items()}}
                  ).to_parquet(C.OUT / "rents_holdout.parquet")
     if heldout_only:
-        return {"heldout": held, "features": feats, "exo": exo.available()}
+        return {"heldout": held, "features": feats, "exo": exo.available(), "group_importance": groups}
 
     # ---------- 2. final model: everything up to the cut-off, predict all flats ----------
     print("final model")
@@ -162,6 +172,7 @@ def run(quick: bool = False, heldout_only: bool = False) -> dict:
         "test_rows": len(test), "test_from": str(test.date.min().date()),
         "test_to": str(test.date.max().date()), "heldout": held,
         "model_median_error_ci95": ci, "importance": importance(model_f, feats),
+        "group_importance": groups, "features": feats,
         "parking_premium_median": float(prem.median()),
         "parking_premium_by_bed": {str(k): float(v) for k, v in by_bed.items()},
         "parking_premium_by_suburb": {k: float(v) for k, v in by_sub.sort_values().items()},

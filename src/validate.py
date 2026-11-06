@@ -80,4 +80,4 @@ def main(paths: list[str]) -> int:
 
 
 if __name__ == "__main__":
-    sys.exit(main(sys.argv[1:] or [str(p) for p in sorted(C.OUT.glob("*_*.csv"))]))
+    sys.exit(main(sys.argv[1:] or [str(p) for p in sorted(C.OUT.glob("rents_*.csv")) + sorted(C.OUT.glob("valuation_*.csv"))]))

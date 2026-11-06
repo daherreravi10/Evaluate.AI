@@ -45,6 +45,7 @@ tell the story. A perfect CSV at 3:05 does not count.
 | 11:00 | Key and files arrive by email → `data/supplied/`, key in `.env` | 1 |
 | 11:02 | `python -m src.client`: tests the key (ping, suburbs, one flat's history). If it fails, check `.env` | 1 |
 | 11:05 | Ask Claude Code: *"use data-engineer: print the columns, dtypes, date range and 3 rows of every file in data/supplied and fix SCHEMA in src/config.py"* | 1 |
+| 11:15 | `python -m src.eda`: any column marked **review** (new in the real files) gets a decision and a reason in `src/decisions.py`; any **flag** is checked | 1 |
 | 11:20 | Delete `data/supplied/MOCK_DATA_DO_NOT_USE_FOR_PITCH.txt` and `data/mock_hidden/`. Run `python -m src.rents --quick` and `python -m src.valuation --quick` | 1 |
 | 11:40 | **First real version**: `bash scripts/run_all.sh`. Commit both CSVs + `report.html`. | 1 |
 | 11:40–1:00 | One change at a time, measured on the held-out check. Log what did not work. | 2, 3 |
@@ -69,6 +70,12 @@ tell the story. A perfect CSV at 3:05 does not count.
 | The API is slow or returns 429 | Not needed: the kit works from the supplied files alone. The client already retries |
 | The API returns 403 for a `gnaf_id` | Normal: outside the City or a retired id. `client.safe()` returns None and carries on |
 | Video > 95 MB | `ffmpeg -i in.mp4 -vf scale=-2:1080 -c:v libx264 -preset veryfast -crf 28 -c:a aac out.mp4` |
+
+## If a judge asks "why these columns?"
+
+Open `report.html` → **How we chose the data**: every column of the six files, what we did with it, why,
+its blank share and signal, the columns we left out (with the look-ahead ones explained), and which
+feature groups the model needs on the held-out check. Source: `src/decisions.py` + `python -m src.eda`.
 
 ## Non-negotiable rules
 

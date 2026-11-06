@@ -13,3 +13,5 @@ outputs/*
 !outputs/valuation_*.csv
 !outputs/metrics_*.json
 !outputs/exo_ablation.json
+!outputs/data_decisions.csv
+!outputs/eda.json

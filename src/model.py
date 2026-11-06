@@ -79,3 +79,31 @@ def importance(model: Anchored, features: list[str], top: int = 15) -> list[dict
     order = np.argsort(gain)[::-1][:top]
     total = gain.sum() or 1
     return [{"feature": features[i], "share": float(gain[i] / total)} for i in order]
+
+
+def group_importance(model: Anchored, test: pd.DataFrame, features: list[str], score,
+                     key: str, higher_is_better: bool, n_rep: int = 3, seed: int = 0) -> list[dict]:
+    """Held-out importance by feature group: shuffle a whole group's columns together across
+    the test rows and measure how much worse the judges' metric gets. Bigger = more needed."""
+    from .decisions import group_of
+
+    rng = np.random.default_rng(seed)
+    y = test.price.to_numpy()
+    base = score(y, np.exp(model.predict(test)))[key]
+    groups: dict[str, list[str]] = {}
+    for f in features:
+        groups.setdefault(group_of(f), []).append(f)
+    rows = []
+    for g, cols in groups.items():
+        vals = []
+        for _ in range(n_rep):
+            T = test.copy()
+            perm = rng.permutation(len(T))
+            T[cols] = T[cols].to_numpy()[perm]
+            vals.append(score(y, np.exp(model.predict(T)))[key])
+        worse = (base - np.mean(vals)) if higher_is_better else (np.mean(vals) - base)
+        rows.append({"group": g, "features": cols, "n_features": len(cols),
+                     "score_without": float(np.mean(vals)), "worse_by": float(worse)})
+    return sorted(rows, key=lambda r: -r["worse_by"]) + [{"group": "(all features as used)",
+                                                          "score_without": float(base), "worse_by": 0.0,
+                                                          "features": [], "n_features": 0}]

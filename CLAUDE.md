@@ -31,6 +31,7 @@ python scripts/make_mock_exo.py       # synthetic outside files in the real raw 
 python scripts/fetch_exo.py           # REAL outside data (laptop with internet)
 python -m src.exo.build               # parse outside data -> data/exo/*.parquet
 python scripts/exo_ablation.py --each # keep only the outside sources that help
+python -m src.eda                     # column profile + decision log -> outputs/data_decisions.csv
 python -m src.rents [--quick]         # held-out check + outputs/rents_<team>.csv + metrics_rents.json
 python -m src.valuation [--quick]     # same for Task 5 (--judging-cap: see report)
 python -m src.validate                # contract check of every CSV in outputs/
@@ -50,6 +51,7 @@ src/index.py      repeat-pairs monthly index (moves old prices to the snapshot d
 src/features.py   snapshot features: own history, building, block, suburb, neighbours, asking advert, anchor
 src/model.py      monthly snapshots -> LightGBM (Huber on log price) starting from the anchor (init_score)
 src/rents.py      Task 4 pipeline      src/valuation.py  Task 5 pipeline
+src/decisions.py  why each supplied column is (not) used   src/eda.py  evidence for it
 src/metrics.py    judges' metrics      src/validate.py   CSV contract check
 src/client.py     cached, throttled API client, same behaviour as the official one (python -m src.client = smoke test)
 src/report.py     report.html          notes.md          the team's words for the report
@@ -75,6 +77,16 @@ src/exo/          outside data: osm.py census.py bonds.py vg.py build.py common.
   `/suburbs/{name}/listings/for-rent` and `for-sale` are live (after the cut-off): never use them.
 - Optional extra data: `python scripts/api_history.py --task rents|valuation --limit N` saves filtered
   history to data/cache/; the pipelines merge it automatically. Keep it only if the held-out score improves.
+
+## Data decisions: every column is accounted for
+- `src/decisions.py` holds one entry per (file, column): feature / derived / key / label / not used, and why.
+- `python -m src.eda` measures the evidence (blank share, dates after the cut-off, signal vs price) and
+  writes `outputs/data_decisions.csv` + `outputs/eda.json`; `report.html` shows it as "How we chose the data",
+  with held-out importance per feature group (shuffling a group and re-scoring with the judges' metric).
+- LOOK-AHEAD columns never become raw features (tested): `ever_advertised_for_lease`, `attrs_last_seen`;
+  `first_ever_listed` only as years since first listed when that is before the snapshot.
+- On the day: real files may bring new columns. They show as "review". Decide, write the reason in
+  `src/decisions.py`, re-run `python -m src.eda`. Change your mind? Change the entry and say why.
 
 ## Outside data (src/exo/, all optional, all free)
 | Source | Task | What | As-of rule in code |

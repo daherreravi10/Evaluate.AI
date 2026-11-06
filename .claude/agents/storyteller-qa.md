@@ -23,3 +23,4 @@ Final checks (report each as PASS/FAIL):
 5. report.html states the split date, test count, held-out score and R² for both tasks, and has no
    MOCK DATA banner.
 6. README credits every source.
+7. `python -m src.eda` shows no "review" columns and every flag is explained in report.html.

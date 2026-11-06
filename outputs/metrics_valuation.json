@@ -114,6 +114,197 @@
    "share": 0.026420206796821156
   }
  ],
+ "group_importance": [
+  {
+   "group": "Starting guess (anchor)",
+   "features": [
+    "anchor_ladj",
+    "anchor_kind"
+   ],
+   "n_features": 2,
+   "score_without": 0.23730633532750423,
+   "worse_by": 0.3876361405123485
+  },
+  {
+   "group": "Same building",
+   "features": [
+    "bldg_bed_med",
+    "bldg_bed_n",
+    "bldg_med",
+    "bldg_n",
+    "bldg_bed_med_rel"
+   ],
+   "n_features": 5,
+   "score_without": 0.6149716214143274,
+   "worse_by": 0.009970854425525366
+  },
+  {
+   "group": "Flat attributes",
+   "features": [
+    "bedrooms",
+    "bathrooms",
+    "car_spaces",
+    "flats_in_building",
+    "floor",
+    "unit_known"
+   ],
+   "n_features": 6,
+   "score_without": 0.6208007363092499,
+   "worse_by": 0.004141739530602817
+  },
+  {
+   "group": "The flat's own history",
+   "features": [
+    "own_last_ladj",
+    "own_last_age_y",
+    "own_n",
+    "ask_ladj",
+    "ask_age_d",
+    "own_last_ladj_rel",
+    "ask_ladj_rel"
+   ],
+   "n_features": 7,
+   "score_without": 0.6211075318300353,
+   "worse_by": 0.0038349440098174314
+  },
+  {
+   "group": "Location",
+   "features": [
+    "latitude",
+    "longitude"
+   ],
+   "n_features": 2,
+   "score_without": 0.622794907194355,
+   "worse_by": 0.0021475686454976994
+  },
+  {
+   "group": "Market trend",
+   "features": [
+    "idx_12m"
+   ],
+   "n_features": 1,
+   "score_without": 0.6249424758398527,
+   "worse_by": 0.0
+  },
+  {
+   "group": "Suburb",
+   "features": [
+    "suburb_code",
+    "sub_bed_med",
+    "sub_bed_n",
+    "sub_med",
+    "sub_n",
+    "base_ladj"
+   ],
+   "n_features": 6,
+   "score_without": 0.6258628624022089,
+   "worse_by": -0.0009203865623561569
+  },
+  {
+   "group": "Outside data",
+   "features": [
+    "osm_km_rail",
+    "osm_km_light_rail",
+    "osm_km_supermarket",
+    "osm_supermarket_n_500m",
+    "osm_km_park",
+    "osm_km_school",
+    "osm_school_n_1000m",
+    "osm_km_main_road",
+    "cen_median_age_persons",
+    "cen_median_mortgage_repay_monthly",
+    "cen_median_tot_prsnl_inc_weekly",
+    "cen_median_rent_weekly",
+    "cen_median_tot_fam_inc_weekly",
+    "cen_average_num_psns_per_bedroom",
+    "cen_median_tot_hhd_inc_weekly",
+    "cen_average_household_size"
+   ],
+   "n_features": 16,
+   "score_without": 0.6261696579229943,
+   "worse_by": -0.0012271820831415425
+  },
+  {
+   "group": "Same block",
+   "features": [
+    "block_code",
+    "mb_med",
+    "mb_n"
+   ],
+   "n_features": 3,
+   "score_without": 0.626323055683387,
+   "worse_by": -0.0013805798435342354
+  },
+  {
+   "group": "Nearest buildings",
+   "features": [
+    "near_med",
+    "near_dist_km"
+   ],
+   "n_features": 2,
+   "score_without": 0.629851204172419,
+   "worse_by": -0.004908728332566281
+  },
+  {
+   "group": "(all features as used)",
+   "score_without": 0.6249424758398527,
+   "worse_by": 0.0,
+   "features": [],
+   "n_features": 0
+  }
+ ],
+ "features": [
+  "bedrooms",
+  "bathrooms",
+  "car_spaces",
+  "flats_in_building",
+  "floor",
+  "latitude",
+  "longitude",
+  "suburb_code",
+  "block_code",
+  "unit_known",
+  "osm_km_rail",
+  "osm_km_light_rail",
+  "osm_km_supermarket",
+  "osm_supermarket_n_500m",
+  "osm_km_park",
+  "osm_km_school",
+  "osm_school_n_1000m",
+  "osm_km_main_road",
+  "cen_median_age_persons",
+  "cen_median_mortgage_repay_monthly",
+  "cen_median_tot_prsnl_inc_weekly",
+  "cen_median_rent_weekly",
+  "cen_median_tot_fam_inc_weekly",
+  "cen_average_num_psns_per_bedroom",
+  "cen_median_tot_hhd_inc_weekly",
+  "cen_average_household_size",
+  "own_last_ladj",
+  "own_last_age_y",
+  "own_n",
+  "bldg_bed_med",
+  "bldg_bed_n",
+  "bldg_med",
+  "bldg_n",
+  "mb_med",
+  "mb_n",
+  "sub_bed_med",
+  "sub_bed_n",
+  "sub_med",
+  "sub_n",
+  "near_med",
+  "near_dist_km",
+  "ask_ladj",
+  "ask_age_d",
+  "own_last_ladj_rel",
+  "bldg_bed_med_rel",
+  "ask_ladj_rel",
+  "base_ladj",
+  "anchor_ladj",
+  "anchor_kind",
+  "idx_12m"
+ ],
  "by_anchor": {
   "had a For Sale advert": {
    "n": 276,

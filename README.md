@@ -33,6 +33,13 @@ included in this repo. Free outside data, used only if our held-out check shows 
 
 Full credits in `report.html`. TODO: delete any source the final model does not use.
 
+## How we chose the data
+
+Every column of the six supplied files has a recorded decision (used, derived, key or left out) and a
+reason, backed by measured evidence: see **How we chose the data** in `report.html`
+(table: `outputs/data_decisions.csv`, reasons: `src/decisions.py`). Two columns that would have let the
+model see the future (`attrs_last_seen`, `ever_advertised_for_lease`) are left out on purpose.
+
 ## The clever step
 
 TODO: one paragraph. Candidates: every feature is computed as of a snapshot date and the model learns
