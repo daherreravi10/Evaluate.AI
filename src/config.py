@@ -11,6 +11,15 @@ import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+
+# .env (team key, team name) is read here so every script sees it, not only the API client
+try:
+    from dotenv import load_dotenv
+
+    load_dotenv(ROOT / ".env")
+except ImportError:  # python-dotenv missing: environment variables still work
+    pass
+
 DATA = ROOT / "data"
 SUPPLIED = DATA / "supplied"      # the emailed files go here. NEVER commit.
 CACHE = DATA / "cache"            # API cache + intermediate parquet. NEVER commit.
@@ -102,6 +111,15 @@ SCHEMA = {
         "homes_2026": "homes_2026", "people_2026": "people_2026",
     },
 }
+
+# On the day, `python scripts/go.py check --apply` writes the real column names it found into
+# schema_overrides.json (canonical name -> real name, per file). Loaded here, so no code edits.
+OVERRIDES = ROOT / "schema_overrides.json"
+if OVERRIDES.exists():
+    import json as _json
+
+    for _key, _cols in _json.loads(OVERRIDES.read_text()).items():
+        SCHEMA.setdefault(_key, {}).update(_cols)
 
 API_BASE = os.environ.get("MICROBURBS_API_BASE", "https://api-ht.microburbs.com.au")
 API_RPS = 8  # docs say ~10 req/s per key; stay under it
