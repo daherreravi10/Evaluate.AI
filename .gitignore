@@ -17,3 +17,5 @@ outputs/*
 !outputs/eda.json
 exo_for_teammates.zip
 .venv/
+# demo recording: raw takes and voice clips
+videos/
