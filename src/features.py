@@ -36,6 +36,8 @@ def snapshot_features(flats: pd.DataFrame, events: pd.DataFrame, s: pd.Timestamp
     pr = pairs if pairs is not None else pairs_from_events(ev)
     idx = repeat_index(pr[pr.date_2 < s], end=s)
     ev = ev.assign(ladj=adjust(ev.price, ev.date, idx))
+    # location columns come from the input file only (event files may carry their own copies)
+    ev = ev.drop(columns=[c for c in ("bkey", "suburb", "mb", "bed") if c in ev.columns])
     ev = ev.merge(flats[["gnaf_id", "bkey", "suburb", "mb", "bed"]], on="gnaf_id", how="inner")
     city_bed = ev.groupby("bed").ladj.median()
     ev["lnorm"] = ev.ladj - ev.bed.map(city_bed)   # price level net of bedroom count
@@ -77,8 +79,14 @@ def snapshot_features(flats: pd.DataFrame, events: pd.DataFrame, s: pd.Timestamp
     if asking is not None and len(asking):
         a = asking[(asking.date < s) & (asking.date >= s - pd.Timedelta(days=150))]
         a = a.sort_values("date").groupby("gnaf_id").tail(1).set_index("gnaf_id")
-        F["ask_ladj"] = g.gnaf_id.map(pd.Series(adjust(a.price, a.date, idx), index=a.index))
-        F["ask_age_d"] = (s - g.gnaf_id.map(a.date)).dt.days
+        # an advert followed by a sale before s is stale: the sale price is what we know now
+        last_sold = last["date"].reindex(a.index)
+        a = a[~(last_sold >= a["date"]).to_numpy()]
+        if len(a):
+            F["ask_ladj"] = g.gnaf_id.map(pd.Series(adjust(a.price, a.date, idx), index=a.index))
+            F["ask_age_d"] = (s - g.gnaf_id.map(a.date)).dt.days
+        else:
+            F["ask_ladj"], F["ask_age_d"] = np.nan, np.nan
 
     # relative to suburb: lets the trees share strength across suburbs
     base = F["sub_bed_med"].fillna(F["sub_med"] + flats.bed.map(city_bed))

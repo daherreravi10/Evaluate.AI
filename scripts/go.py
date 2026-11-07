@@ -36,10 +36,10 @@ HINTS = {
     "car_spaces": ["car_spaces", "carspaces", "parking", "car_space", "cars", "parking_spaces"],
     "bedrooms": ["bedrooms", "beds", "bed", "bedroom_count"],
     "bathrooms": ["bathrooms", "baths", "bath", "bathroom_count"],
-    "date_1": ["date_1", "date1", "first_date", "prev_date", "sale_date_1"],
-    "date_2": ["date_2", "date2", "second_date", "next_date", "sale_date_2"],
-    "price_1": ["price_1", "price1", "first_price", "prev_price", "sale_price_1"],
-    "price_2": ["price_2", "price2", "second_price", "next_price", "sale_price_2"],
+    "date_1": ["date_1", "date1", "buy_date", "first_date", "prev_date", "sale_date_1"],
+    "date_2": ["date_2", "date2", "sell_date", "second_date", "next_date", "sale_date_2"],
+    "price_1": ["price_1", "price1", "buy_price", "first_price", "prev_price", "sale_price_1"],
+    "price_2": ["price_2", "price2", "sell_price", "second_price", "next_price", "sale_price_2"],
     "homes_2021": ["homes_2021", "dwellings_2021", "homes2021"],
     "homes_2026": ["homes_2026", "dwellings_2026", "homes2026"],
     "people_2021": ["people_2021", "persons_2021", "population_2021"],
@@ -163,6 +163,10 @@ def files_check(apply: bool) -> bool:
         head = pd.read_csv(p, nrows=200, low_memory=False)
         n = sum(1 for _ in open(p, "rb")) - 1
         found, missing = match_columns(key, list(head.columns))
+        if key == "value_sales" and "type" in missing and "advertised_price" in head.columns:
+            missing.remove("type")
+            found.pop("type", None)
+            print("       type             <- Sold rows + For Sale adverts from advertised_price/advertised_date")
         exp_n = C.N_ROWS.get(key)
         rows = f"{n:,} rows" + ("" if not exp_n else f" (expected {exp_n:,})")
         bad_rows = exp_n and n != exp_n

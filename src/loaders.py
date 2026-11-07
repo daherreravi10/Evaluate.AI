@@ -32,6 +32,13 @@ def load(key: str) -> pd.DataFrame:
     mapping = C.SCHEMA[key]
     inverse = {real: canon for canon, real in mapping.items()}
     df = df.rename(columns=inverse)
+    if key in ("rents_leases", "value_sales", "value_repeat"):
+        # location columns come from the input file; an event file's own copy would clash in merges
+        clash = {c: f"{c}_event" for c in ("suburb", "mb", "bkey", "bed", "car_space", "postcode")
+                 if c in df.columns and c not in mapping}
+        df = df.rename(columns=clash)
+    if key == "value_sales" and "type" not in df.columns and "advertised_price" in df.columns:
+        df = _sales_long(df)
     missing = [c for c in mapping if c not in df.columns]
     if missing:
         print(f"[loaders] {key}: columns not found {missing} -> filled with NaN. "
@@ -43,6 +50,22 @@ def load(key: str) -> pd.DataFrame:
         # 0001-01-01 means "no known date"
         df.loc[df[c] < "1900-01-01", c] = pd.NaT
     return df
+
+
+def _sales_long(df: pd.DataFrame) -> pd.DataFrame:
+    """Real file: one row per sale with its advert (advertised_price, advertised_date) beside it.
+
+    -> one "Sold" row (date, price) plus one "For Sale" row (advertised_date, advertised_price)
+    per sale. Adverts dated after the cut-off are later dropped by asof.until like any row.
+    """
+    sold = df.drop(columns=["advertised_price", "advertised_date"]).assign(type="Sold")
+    ad = df.drop(columns=["date", "price"]).rename(
+        columns={"advertised_date": "date", "advertised_price": "price"}).assign(type="For Sale")
+    ad["price"] = pd.to_numeric(ad["price"], errors="coerce")
+    ad = ad[ad["price"].notna() & ad["date"].notna()]
+    out = pd.concat([sold, ad], ignore_index=True)
+    print(f"[loaders] value_sales: {len(sold):,} sale rows + {len(ad):,} advert rows (from advertised_*)")
+    return out
 
 
 UNIT_RE = re.compile(r"^\s*(?:UNIT|APARTMENT|APT|FLAT|SUITE|SHOP|OFFICE|U)?\s*[\w/-]*\s*,\s*", re.I)
