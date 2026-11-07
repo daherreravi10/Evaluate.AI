@@ -3,8 +3,6 @@
 Microburbs Hackathon, Saturday 7 November 2026. Task 4 (weekly rent, with and without parking) and
 Task 5 (sale value), City of Sydney.
 
-> TODO on the day: replace every TODO with real numbers from `outputs/metrics_*.json`.
-
 ![How it all fits together](docs/architecture.png)
 
 ## What we built
@@ -38,7 +36,7 @@ included in this repo. Free outside data, used only if our held-out check shows 
 - NSW Fair Trading rental bond lodgements: new-lease rents by postcode and bedrooms.
 - NSW Valuer General bulk sales (contains property sales information provided under licence from the Valuer General NSW).
 
-Full credits in `report.html`. TODO: delete any source the final model does not use.
+The Valuer General files were not used (the site blocks scripted downloads). Full credits in `report.html`.
 
 ## How we chose the data
 
@@ -49,23 +47,36 @@ model see the future (`attrs_last_seen`, `ever_advertised_for_lease`) are left o
 
 ## The clever step
 
-TODO: one paragraph. Candidates: every feature is computed as of a snapshot date and the model learns
-to predict two months ahead, exactly the judges' set-up; prices start from the best thing known about
-that flat (its own advert, its own last price moved by a repeat-sales index, its building) and the
-model only learns the correction; a monotone constraint keeps a car space worth zero or more.
+We train the model the way it is judged. At every monthly snapshot we rebuild every feature from what
+was known on that date only, and ask the model to predict prices in the next two months. Each estimate
+starts from the best thing already known about that exact flat: its own For Sale advert, its own last
+price moved to today by a repeat-sales index, or its building. The model (LightGBM) only learns the
+correction on top. That starting guess is the single most important input on held-out data
+(scrambling it adds $211/wk to the rent error and costs 41 points of within-10%).
+
+For parking, every flat is priced twice, with and without a car space. A monotone constraint keeps a car
+space worth zero or more, and we check the result against raw like-for-like adverts (same building, same
+bedrooms, one with and one without a car space): raw adverts say **$71/wk**, our hand-in says **$72/wk**.
 
 ## Results (our own held-out check)
 
-| Task | Split date | Test events | Score | R² | Organisers' reference |
-|---|---|---|---|---|---|
-| 4 Rents | 2026-05-01 | TODO | median miss $TODO/wk, TODO% within $100 | TODO | $86/wk, 55.21% within $100 |
-| 5 Values | 2026-05-01 | TODO | TODO% within 10% | TODO | 109 of 227 (48%) |
+Built only from data before each snapshot, tested on later adverts and sales up to the cut-off.
+Split date, test counts and confidence intervals are in `report.html`.
+
+| Task | Our score | R² | Same baselines, our check | Organisers' reference |
+|---|---|---|---|---|
+| 4 Rents | **$43/wk median miss, 80.8% within $100** | 0.89 | suburb × bedrooms $92; with parking $95 | Microburbs valuation $86/wk, 55.21% within $100 |
+| 5 Values | **65.4% within 10%**, median miss $43,656 | 0.65 | suburb × bedrooms 38.0%; asking price or last sale 53.4% | best rule 109/227 (48%); Microburbs AVM 34/227 |
+
+Our simple baselines land close to the organisers' published figures (suburb × bedrooms: $92 vs ~$100,
+38.0% vs 37.9%), which suggests our check behaves like the judges' test. No data after the cut-offs is
+used: the rents file ends on 31 July; two sale adverts dated after 31 August were dropped.
 
 ## How to run it
 
 ```bash
 pip install -r requirements.txt
-cp .env.example .env            # set TEAM_NAME; paste the team key; never commit .env
+cp .env.example .env            # TEAM_NAME=Evaluate.AI; paste the team key; never commit .env
 # put the six supplied CSVs in data/supplied/
 python scripts/go.py check      # key, files, columns (add --apply to accept proposed column matches)
 python scripts/go.py run        # tests, EDA, both tasks, validate, report
