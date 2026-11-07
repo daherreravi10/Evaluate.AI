@@ -12,12 +12,12 @@ Two estimates for every flat in the City of Sydney, from one pipeline:
 - **Weekly rent** for all 65,777 flats, as at 31 July 2026, with and without a car space
   (`outputs/rents_<team>.csv`). The gap is what a car space is worth for that flat.
 - **Sale value** for all 181,711 unit-style addresses on 31 August 2026 (`outputs/valuation_<team>.csv`).
-- **Kerbside** (`app/app.py`), the app: type an address and get the weekly rent with and without a car space,
+- **Evaluate.AI app** (`app/app.py`), the app: type an address and get the weekly rent with and without a car space,
   the sale value and how we got them; check whether a quoted rent is fair; see what is around the flat
   (transport, shops, hospitals, bus routes, what is being built, rough travel times by car, bike and on foot);
   and a map of what a car space adds to rent across the City.
 
-![Kerbside](docs/kerbside_1_flat.png)
+![Evaluate.AI app](docs/kerbside_1_flat.png)
 
 ## Who it helps
 
@@ -80,7 +80,7 @@ cp .env.example .env            # TEAM_NAME=Evaluate.AI; paste the team key; nev
 # put the six supplied CSVs in data/supplied/
 python scripts/go.py check      # key, files, columns (add --apply to accept proposed column matches)
 python scripts/go.py run        # tests, EDA, both tasks, validate, report
-streamlit run app/app.py        # Kerbside, the demo app (local only)
+streamlit run app/app.py        # Evaluate.AI app, for the demo (local only)
 ```
 
 One task at a time: `python scripts/run.py --task rents` or `--task valuation`. Free outside data:

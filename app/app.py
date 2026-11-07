@@ -1,4 +1,4 @@
-"""Kerbside — weekly rent (with and without a car space) and sale value for every flat in the
+"""Evaluate.AI — weekly rent (with and without a car space) and sale value for every flat in the
 City of Sydney. The demo for demo.mp4 and pitch.mp4.
 
 Reads data/cache/app_*.parquet (written by src/rents.py and src/valuation.py) and
@@ -24,7 +24,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from src import config as C  # noqa: E402
 from src import neighbourhood as nb  # noqa: E402
 
-st.set_page_config(page_title="Kerbside — Sydney flats", page_icon="🅿️", layout="wide")
+st.set_page_config(page_title="Evaluate.AI — Sydney flats", page_icon="🅿️", layout="wide")
 
 INK, MUTED, ASPHALT, KERB, EUCALYPT, RUST, BLUE = (
     "#1B2422", "#5E6965", "#2F3438", "#EDBB2A", "#2E6B5B", "#B4542D", "#3D6A9E")
@@ -155,7 +155,12 @@ def basemap() -> dict:
         blank = json.dumps({"version": 8, "sources": {}, "layers": [
             {"id": "paper", "type": "background", "paint": {"background-color": "#E6EBE8"}}]})
         return {"map_provider": "mapbox", "map_style": "data:application/json;charset=utf-8," + quote(blank)}
-    return {"map_provider": "carto", "map_style": pdk.map_styles.CARTO_LIGHT}
+    osm = json.dumps({"version": 8, "sources": {"osm": {
+        "type": "raster", "tiles": ["https://tile.openstreetmap.org/{z}/{x}/{y}.png"], "tileSize": 256,
+        "maxzoom": 19, "attribution": "\u00a9 OpenStreetMap contributors"}},
+        "layers": [{"id": "osm", "type": "raster", "source": "osm",
+                    "paint": {"raster-saturation": -0.75, "raster-brightness-min": 0.08}}]})
+    return {"map_provider": "mapbox", "map_style": "data:application/json;charset=utf-8," + quote(osm)}
 
 
 def tidy_address(a: str, suburb: str = "") -> str:
@@ -323,12 +328,13 @@ html,body,#m{{margin:0;height:100%;background:#E6EBE8;font-family:Barlow,Arial,s
 font:700 12.5px/1 Arial,Helvetica,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.35)}}
 .home{{width:20px;height:20px;border-radius:50%;background:#2F3438;border:5px solid #EDBB2A;
 box-shadow:0 1px 4px rgba(0,0,0,.4)}}
-.leaflet-tooltip{{font:13px/1.3 Barlow,Arial,sans-serif}}</style></head><body><div id="m"></div>
+.leaflet-tooltip{{font:13px/1.3 Barlow,Arial,sans-serif}}
+.leaflet-tile-pane{{filter:grayscale(.75) brightness(1.06) contrast(.92)}}</style></head><body><div id="m"></div>
 <script>{js}</script><script>
 const D={data};
 const map=L.map('m',{{zoomControl:true,attributionControl:true,zoomSnap:0.25}}).setView([D.lat,D.lon],14.75);
-L.tileLayer('https://{{s}}.basemaps.cartocdn.com/light_all/{{z}}/{{x}}/{{y}}{{r}}.png',
- {{maxZoom:19,subdomains:'abcd',attribution:'&copy; OpenStreetMap contributors &copy; CARTO'}}).addTo(map);
+L.tileLayer('https://tile.openstreetmap.org/{{z}}/{{x}}/{{y}}.png',
+ {{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}}).addTo(map);
 [[620,'10 min walk'],[310,'5 min walk']].forEach(([r,t])=>L.circle([D.lat,D.lon],{{radius:r,color:'#2F3438',
  weight:1.2,opacity:.45,fill:false,dashArray:'4 5'}}).bindTooltip(t).addTo(map));
 D.bus.forEach(b=>L.circleMarker([b.lat,b.lon],{{radius:3.5,color:'#fff',weight:1,fillColor:'#2E6B5B',
@@ -498,7 +504,7 @@ def fair_rent(f: pd.Series, m: dict | None) -> None:
 
 # ------------------------------------------------------------------ page
 st.markdown(CSS, unsafe_allow_html=True)
-st.markdown(f'<div class="brand">{LOGO}<h1>Kerbside</h1></div>'
+st.markdown(f'<div class="brand">{LOGO}<h1>Evaluate.AI</h1></div>'
             '<p class="lede">What every flat in the City of Sydney should rent for, with and without a car '
             'space, and what it would sell for.</p>', unsafe_allow_html=True)
 if (C.SUPPLIED / "MOCK_DATA_DO_NOT_USE_FOR_PITCH.txt").exists():
@@ -616,7 +622,7 @@ with tab_proof:
         chosen = m.get("handin", "Our model (LightGBM, snapshots)")
         for name, v in items:
             ours = name == chosen
-            label = "Kerbside" if ours else name
+            label = "Evaluate.AI" if ours else name
             w = 100 * v[key] / top
             rows += (f'<div class="name{" ours" if ours else ""}">{html.escape(label)}'
                      f'<div class="bar{" ours" if ours else ""}" style="width:{w:.0f}%"></div></div>'
