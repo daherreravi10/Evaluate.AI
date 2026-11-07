@@ -4,105 +4,105 @@
  "split": "2026-05-01",
  "horizon_months": 2,
  "snapshots": 4,
- "train_rows_holdout": 10785,
- "train_rows_final": 10914,
- "test_rows": 4135,
+ "train_rows_holdout": 8356,
+ "train_rows_final": 9345,
+ "test_rows": 3866,
  "test_from": "2026-05-01",
  "test_to": "2026-07-31",
  "heldout": {
   "Suburb x bedrooms median": {
-   "n": 4135,
-   "median_abs_error": 79.55620510480219,
-   "share_within_100": 0.599758162031439,
-   "r2": 0.6109421586749787,
+   "n": 3866,
+   "median_abs_error": 92.43015005825833,
+   "share_within_100": 0.5188825659596482,
+   "r2": 0.6336437592830373,
    "blank": 0
   },
   "Suburb x bedrooms x parking median": {
-   "n": 4135,
-   "median_abs_error": 80.0,
-   "share_within_100": 0.607496977025393,
-   "r2": 0.6065742089525537,
+   "n": 3866,
+   "median_abs_error": 95.0,
+   "share_within_100": 0.5812209001551992,
+   "r2": 0.6551544198257861,
    "blank": 0
   },
   "Own last advert, indexed": {
-   "n": 4135,
-   "median_abs_error": 56.7640236418473,
-   "share_within_100": 0.7443772672309552,
-   "r2": 0.8058898212206819,
+   "n": 3866,
+   "median_abs_error": 51.751657462504454,
+   "share_within_100": 0.7053802379720642,
+   "r2": 0.7595698185380109,
    "blank": 0
   },
   "Our model (LightGBM, snapshots)": {
-   "n": 4135,
-   "median_abs_error": 49.260278009965305,
-   "share_within_100": 0.8157194679564692,
-   "r2": 0.859637792217032,
+   "n": 3866,
+   "median_abs_error": 44.961154803928224,
+   "share_within_100": 0.7922917744438697,
+   "r2": 0.8839508235988721,
    "blank": 0
   }
  },
  "model_median_error_ci95": [
-  47.459600852567334,
-  50.811738148907004
+  42.845179961873185,
+  46.87274951757551
  ],
  "importance": [
   {
    "feature": "own_last_ladj_rel",
-   "share": 0.15442151504303334
-  },
-  {
-   "feature": "bldg_bed_med_rel",
-   "share": 0.08431351850401085
-  },
-  {
-   "feature": "bldg_med",
-   "share": 0.05641232760226247
-  },
-  {
-   "feature": "bldg_bed_med",
-   "share": 0.04827373637028601
-  },
-  {
-   "feature": "block_homes_2026",
-   "share": 0.04762456807141507
+   "share": 0.1392788378036361
   },
   {
    "feature": "own_last_age_y",
-   "share": 0.04313814855479292
+   "share": 0.10011319515618844
   },
   {
-   "feature": "years_since_first_listed",
-   "share": 0.04104875129342175
-  },
-  {
-   "feature": "own_last_ladj",
-   "share": 0.03927883099876957
+   "feature": "bldg_bed_med_rel",
+   "share": 0.06435001733747815
   },
   {
    "feature": "anchor_ladj",
-   "share": 0.0323919477181218
+   "share": 0.04672828637651572
   },
   {
-   "feature": "block_growth",
-   "share": 0.03155027726438712
+   "feature": "years_since_first_listed",
+   "share": 0.041235236856398655
   },
   {
-   "feature": "people_per_home",
-   "share": 0.03128560239180405
+   "feature": "own_last_ladj",
+   "share": 0.03549877672903824
+  },
+  {
+   "feature": "bldg_bed_med",
+   "share": 0.033265811327905404
+  },
+  {
+   "feature": "bldg_med",
+   "share": 0.024326296155780143
   },
   {
    "feature": "mb_med",
-   "share": 0.02956331609160517
+   "share": 0.023354992413988446
   },
   {
-   "feature": "sub_med",
-   "share": 0.028062275513032288
+   "feature": "floor_level",
+   "share": 0.022531122130000567
   },
   {
-   "feature": "near_dist_km",
-   "share": 0.02737761956493146
+   "feature": "block_homes_2026",
+   "share": 0.02006730817109068
   },
   {
    "feature": "near_med",
-   "share": 0.026219130613944725
+   "share": 0.02001010395563776
+  },
+  {
+   "feature": "osm_km_park",
+   "share": 0.019946930082578664
+  },
+  {
+   "feature": "people_per_home",
+   "share": 0.018914142633047547
+  },
+  {
+   "feature": "osm_km_supermarket",
+   "share": 0.01820328376444796
   }
  ],
  "group_importance": [
@@ -113,8 +113,8 @@
     "anchor_kind"
    ],
    "n_features": 2,
-   "score_without": 176.5702551175002,
-   "worse_by": 127.2643691165498
+   "score_without": 263.4270603574452,
+   "worse_by": 218.40379579902657
   },
   {
    "group": "The flat's own history",
@@ -125,21 +125,8 @@
     "own_last_ladj_rel"
    ],
    "n_features": 4,
-   "score_without": 76.49018094340795,
-   "worse_by": 27.18429494245754
-  },
-  {
-   "group": "Same building",
-   "features": [
-    "bldg_bed_med",
-    "bldg_bed_n",
-    "bldg_med",
-    "bldg_n",
-    "bldg_bed_med_rel"
-   ],
-   "n_features": 5,
-   "score_without": 72.19994766432369,
-   "worse_by": 22.89406166337328
+   "score_without": 69.21253535737377,
+   "worse_by": 24.18927079895512
   },
   {
    "group": "Flat attributes",
@@ -153,51 +140,50 @@
     "car"
    ],
    "n_features": 7,
-   "score_without": 51.47031170915765,
-   "worse_by": 2.16442570820724
+   "score_without": 54.577455921307035,
+   "worse_by": 9.554191362888389
   },
   {
-   "group": "Suburb",
+   "group": "Same building",
    "features": [
-    "suburb_code",
-    "sub_bed_med",
-    "sub_bed_n",
-    "sub_med",
-    "sub_n",
-    "base_ladj"
+    "bldg_bed_med",
+    "bldg_bed_n",
+    "bldg_med",
+    "bldg_n",
+    "bldg_bed_med_rel"
    ],
-   "n_features": 6,
-   "score_without": 50.42166016997044,
-   "worse_by": 1.1157741690200282
+   "n_features": 5,
+   "score_without": 53.29661911067999,
+   "worse_by": 8.273354552261345
   },
   {
-   "group": "Market trend",
+   "group": "Outside data",
    "features": [
-    "idx_12m"
+    "osm_km_rail",
+    "osm_km_light_rail",
+    "osm_km_supermarket",
+    "osm_supermarket_n_500m",
+    "osm_km_park",
+    "osm_km_school",
+    "osm_school_n_1000m",
+    "osm_km_main_road",
+    "cen_median_age_persons",
+    "cen_median_mortgage_repay_monthly",
+    "cen_median_tot_prsnl_inc_weekly",
+    "cen_median_rent_weekly",
+    "cen_median_tot_fam_inc_weekly",
+    "cen_average_num_psns_per_bedroom",
+    "cen_median_tot_hhd_inc_weekly",
+    "cen_average_household_size",
+    "bond_pc_bed_lmed",
+    "bond_pc_bed_n",
+    "bond_pc_lmed",
+    "bond_pc_growth",
+    "bond_rel"
    ],
-   "n_features": 1,
-   "score_without": 49.30588600095041,
-   "worse_by": 0.0
-  },
-  {
-   "group": "Nearest buildings",
-   "features": [
-    "near_med",
-    "near_dist_km"
-   ],
-   "n_features": 2,
-   "score_without": 48.89973757299507,
-   "worse_by": -0.4061484279553369
-  },
-  {
-   "group": "Location",
-   "features": [
-    "latitude",
-    "longitude"
-   ],
-   "n_features": 2,
-   "score_without": 48.7815395878952,
-   "worse_by": -0.5243464130552056
+   "n_features": 21,
+   "score_without": 46.714023624491425,
+   "worse_by": 1.6907590660727791
   },
   {
    "group": "Same block",
@@ -210,12 +196,55 @@
     "mb_n"
    ],
    "n_features": 6,
-   "score_without": 48.495544692846046,
-   "worse_by": -0.8103413081043627
+   "score_without": 45.90519967796416,
+   "worse_by": 0.881935119545517
+  },
+  {
+   "group": "Nearest buildings",
+   "features": [
+    "near_med",
+    "near_dist_km"
+   ],
+   "n_features": 2,
+   "score_without": 45.470588900852924,
+   "worse_by": 0.4473243424342783
+  },
+  {
+   "group": "Location",
+   "features": [
+    "latitude",
+    "longitude"
+   ],
+   "n_features": 2,
+   "score_without": 45.129676630934576,
+   "worse_by": 0.10641207251592988
+  },
+  {
+   "group": "Market trend",
+   "features": [
+    "idx_12m"
+   ],
+   "n_features": 1,
+   "score_without": 45.023264558418646,
+   "worse_by": 0.0
+  },
+  {
+   "group": "Suburb",
+   "features": [
+    "suburb_code",
+    "sub_bed_med",
+    "sub_bed_n",
+    "sub_med",
+    "sub_n",
+    "base_ladj"
+   ],
+   "n_features": 6,
+   "score_without": 44.36639717557731,
+   "worse_by": -0.6568673828413338
   },
   {
    "group": "(all features as used)",
-   "score_without": 49.30588600095041,
+   "score_without": 45.023264558418646,
    "worse_by": 0.0,
    "features": [],
    "n_features": 0
@@ -234,6 +263,22 @@
   "ptype_code",
   "block_growth",
   "people_per_home",
+  "osm_km_rail",
+  "osm_km_light_rail",
+  "osm_km_supermarket",
+  "osm_supermarket_n_500m",
+  "osm_km_park",
+  "osm_km_school",
+  "osm_school_n_1000m",
+  "osm_km_main_road",
+  "cen_median_age_persons",
+  "cen_median_mortgage_repay_monthly",
+  "cen_median_tot_prsnl_inc_weekly",
+  "cen_median_rent_weekly",
+  "cen_median_tot_fam_inc_weekly",
+  "cen_average_num_psns_per_bedroom",
+  "cen_median_tot_hhd_inc_weekly",
+  "cen_average_household_size",
   "own_last_ladj",
   "own_last_age_y",
   "own_n",
@@ -255,322 +300,324 @@
   "anchor_ladj",
   "anchor_kind",
   "idx_12m",
+  "bond_pc_bed_lmed",
+  "bond_pc_bed_n",
+  "bond_pc_lmed",
+  "bond_pc_growth",
+  "bond_rel",
   "years_since_first_listed",
   "car"
  ],
- "parking_premium_median": 44.5,
+ "parking_premium_median": 76.5,
  "parking_check": {
-  "pairs": 2580,
-  "adverts": 26677,
+  "pairs": 816,
+  "adverts": 16152,
   "years": 3,
-  "raw_median": 43.05068368020295,
-  "model_median": 44.5,
-  "raw_share_negative": 0.23527131782945737,
+  "raw_median": 70.8973273446801,
+  "model_median": 72.0,
+  "raw_share_negative": 0.15808823529411764,
   "by_suburb": [
    {
-    "suburb": "Darlington (NSW)",
-    "pairs": 131,
-    "raw": 51.928642987074454,
-    "model": 41.0
-   },
-   {
-    "suburb": "Elizabeth Bay (NSW)",
-    "pairs": 106,
-    "raw": 50.77287876492676,
-    "model": 37.0
-   },
-   {
-    "suburb": "Beaconsfield (NSW)",
-    "pairs": 102,
-    "raw": 26.628943887731907,
-    "model": 32.5
-   },
-   {
-    "suburb": "Millers Point (NSW)",
-    "pairs": 95,
-    "raw": 45.99175858604326,
-    "model": 47.5
-   },
-   {
-    "suburb": "Eveleigh (NSW)",
-    "pairs": 93,
-    "raw": 30.399428017437913,
-    "model": 20.5
-   },
-   {
-    "suburb": "Glebe (NSW)",
-    "pairs": 89,
-    "raw": 49.31084400310124,
-    "model": 49.5
-   },
-   {
-    "suburb": "Barangaroo (NSW)",
+    "suburb": "Sydney",
     "pairs": 83,
-    "raw": 32.90700675158371,
-    "model": 34.5
+    "raw": 72.39765500645342,
+    "model": 77.5
    },
    {
-    "suburb": "Darlinghurst (NSW)",
-    "pairs": 83,
-    "raw": 30.624788711005863,
-    "model": 35.0
-   },
-   {
-    "suburb": "Sydney (NSW)",
-    "pairs": 83,
-    "raw": 30.34722887849034,
-    "model": 34.5
-   },
-   {
-    "suburb": "Dawes Point (NSW)",
-    "pairs": 82,
-    "raw": 54.22967626693014,
-    "model": 48.5
-   },
-   {
-    "suburb": "Redfern (NSW)",
-    "pairs": 82,
-    "raw": 36.08028548614743,
-    "model": 42.5
-   },
-   {
-    "suburb": "Surry Hills (NSW)",
-    "pairs": 81,
-    "raw": 72.57750221289257,
-    "model": 79.0
-   },
-   {
-    "suburb": "Rushcutters Bay (NSW)",
-    "pairs": 80,
-    "raw": 25.2758120776773,
-    "model": 35.25
-   },
-   {
-    "suburb": "Rosebery (NSW)",
-    "pairs": 79,
-    "raw": 47.407177500983835,
-    "model": 48.5
-   },
-   {
-    "suburb": "Pyrmont (NSW)",
-    "pairs": 78,
-    "raw": 43.17210472042939,
-    "model": 46.5
-   },
-   {
-    "suburb": "The Rocks (NSW)",
-    "pairs": 77,
-    "raw": 30.118765410729907,
-    "model": 37.0
-   },
-   {
-    "suburb": "Chippendale (NSW)",
+    "suburb": "Zetland",
     "pairs": 75,
-    "raw": 43.747907221101855,
-    "model": 55.5
+    "raw": 75.59176611728526,
+    "model": 60.5
    },
    {
-    "suburb": "Paddington (NSW)",
-    "pairs": 74,
-    "raw": 30.044609226047555,
-    "model": 44.0
-   },
-   {
-    "suburb": "Ultimo (NSW)",
-    "pairs": 74,
-    "raw": 54.948232241298456,
-    "model": 44.0
-   },
-   {
-    "suburb": "Centennial Park (NSW)",
-    "pairs": 73,
-    "raw": 35.53160660165679,
-    "model": 16.5
+    "suburb": "Surry Hills",
+    "pairs": 64,
+    "raw": 87.58651452890717,
+    "model": 85.0
    },
    {
     "suburb": "Waterloo (NSW)",
-    "pairs": 73,
-    "raw": 57.80607619092768,
-    "model": 54.0
-   },
-   {
-    "suburb": "Annandale (NSW)",
-    "pairs": 72,
-    "raw": 48.942578732678726,
-    "model": 49.0
-   },
-   {
-    "suburb": "Forest Lodge (NSW)",
-    "pairs": 72,
-    "raw": 56.600587864548515,
-    "model": 49.0
-   },
-   {
-    "suburb": "Zetland (NSW)",
-    "pairs": 72,
-    "raw": 45.10128578708816,
-    "model": 40.875
-   },
-   {
-    "suburb": "Camperdown (NSW)",
-    "pairs": 71,
-    "raw": 39.43134871989241,
-    "model": 34.0
-   },
-   {
-    "suburb": "Haymarket (NSW)",
-    "pairs": 69,
-    "raw": 66.96788521725512,
-    "model": 66.0
-   },
-   {
-    "suburb": "Erskineville (NSW)",
-    "pairs": 68,
-    "raw": 45.60762659063903,
-    "model": 57.625
-   },
-   {
-    "suburb": "St Peters (NSW)",
-    "pairs": 67,
-    "raw": 37.72994476870474,
-    "model": 64.25
-   },
-   {
-    "suburb": "Moore Park (NSW)",
-    "pairs": 62,
-    "raw": 35.15498706537164,
-    "model": 41.5
-   },
-   {
-    "suburb": "Potts Point (NSW)",
     "pairs": 61,
-    "raw": 45.28126049874072,
-    "model": 53.0
+    "raw": 46.07623773742762,
+    "model": 54.5
    },
    {
-    "suburb": "Woolloomooloo (NSW)",
-    "pairs": 61,
-    "raw": 50.37680602006708,
-    "model": 53.75
+    "suburb": "Potts Point",
+    "pairs": 41,
+    "raw": 60.07150111269334,
+    "model": 65.5
    },
    {
-    "suburb": "Alexandria (NSW)",
-    "pairs": 60,
-    "raw": 38.91825972484514,
-    "model": 44.75
+    "suburb": "Rosebery (NSW)",
+    "pairs": 41,
+    "raw": 48.42341154541623,
+    "model": 57.5
+   },
+   {
+    "suburb": "Chippendale",
+    "pairs": 37,
+    "raw": 82.75753372563031,
+    "model": 50.0
    },
    {
     "suburb": "Newtown (NSW)",
-    "pairs": 52,
-    "raw": 29.142142230055242,
-    "model": 44.5
+    "pairs": 37,
+    "raw": 45.51412666149167,
+    "model": 61.5
+   },
+   {
+    "suburb": "Alexandria",
+    "pairs": 36,
+    "raw": 46.622181183934686,
+    "model": 56.25
+   },
+   {
+    "suburb": "Haymarket",
+    "pairs": 34,
+    "raw": 90.0834717677468,
+    "model": 70.75
+   },
+   {
+    "suburb": "Camperdown (NSW)",
+    "pairs": 31,
+    "raw": 77.7892830675022,
+    "model": 75.0
+   },
+   {
+    "suburb": "Darlinghurst",
+    "pairs": 30,
+    "raw": 111.67291142498163,
+    "model": 92.5
+   },
+   {
+    "suburb": "Glebe (NSW)",
+    "pairs": 29,
+    "raw": 24.7620199943849,
+    "model": 54.0
+   },
+   {
+    "suburb": "Redfern",
+    "pairs": 28,
+    "raw": 58.39364267789392,
+    "model": 62.0
+   },
+   {
+    "suburb": "Elizabeth Bay",
+    "pairs": 26,
+    "raw": 55.25510194544779,
+    "model": 66.5
+   },
+   {
+    "suburb": "Ultimo",
+    "pairs": 22,
+    "raw": 49.1487486061194,
+    "model": 51.5
+   },
+   {
+    "suburb": "Paddington (NSW)",
+    "pairs": 20,
+    "raw": 70.49609718979002,
+    "model": 74.5
+   },
+   {
+    "suburb": "Pyrmont",
+    "pairs": 20,
+    "raw": 104.7106265818718,
+    "model": 88.0
+   },
+   {
+    "suburb": "Woolloomooloo",
+    "pairs": 18,
+    "raw": 105.00078989359326,
+    "model": 101.5
+   },
+   {
+    "suburb": "Erskineville",
+    "pairs": 15,
+    "raw": 82.85494914415722,
+    "model": 67.0
+   },
+   {
+    "suburb": "Forest Lodge",
+    "pairs": 15,
+    "raw": 57.76764892139886,
+    "model": 45.0
+   },
+   {
+    "suburb": "Rushcutters Bay",
+    "pairs": 12,
+    "raw": 11.768897818441474,
+    "model": 55.5
+   },
+   {
+    "suburb": "Annandale (NSW)",
+    "pairs": 11,
+    "raw": 77.19322828128077,
+    "model": 76.5
+   },
+   {
+    "suburb": "Centennial Park (NSW)",
+    "pairs": 10,
+    "raw": 57.37531270215254,
+    "model": 67.0
+   },
+   {
+    "suburb": "Barangaroo",
+    "pairs": 5,
+    "raw": 100.45437503658468,
+    "model": 70.5
+   },
+   {
+    "suburb": "St Peters (NSW)",
+    "pairs": 4,
+    "raw": 49.45233994424905,
+    "model": 72.5
+   },
+   {
+    "suburb": "Beaconsfield (NSW)",
+    "pairs": 3,
+    "raw": 18.117784924028,
+    "model": 81.0
+   },
+   {
+    "suburb": "Millers Point",
+    "pairs": 3,
+    "raw": 206.80638237755022,
+    "model": 89.0
    }
   ],
   "by_bed": [
    {
     "bed": 0,
-    "pairs": 80,
-    "raw": 27.572910372599267,
-    "model": 27.625
+    "pairs": 57,
+    "raw": 28.3464929018877,
+    "model": 28.0
    },
    {
     "bed": 1,
-    "pairs": 1193,
-    "raw": 37.0738549156174,
-    "model": 37.0
+    "pairs": 490,
+    "raw": 71.1550676204738,
+    "model": 66.5
    },
    {
     "bed": 2,
-    "pairs": 1177,
-    "raw": 50.791395680103506,
-    "model": 50.0
+    "pairs": 248,
+    "raw": 88.83285713712326,
+    "model": 88.75
    },
    {
     "bed": 3,
-    "pairs": 130,
-    "raw": 63.797434496152846,
-    "model": 64.5
+    "pairs": 21,
+    "raw": 42.37495086626268,
+    "model": 41.5
    }
   ],
-  "suburb_rank_corr": 0.6419794926688087
+  "suburb_rank_corr": 0.6262488083827374
  },
  "parking_method": {
   "model": {
-   "n": 4059,
-   "median_abs_error": 49.372443299707356,
-   "share_within_100": 0.8157181571815718,
-   "r2": 0.8595345457071183,
+   "n": 3773,
+   "median_abs_error": 45.39176219772821,
+   "share_within_100": 0.793002915451895,
+   "r2": 0.8844013624031929,
    "blank": 0
   },
   "calibrated": {
-   "n": 4059,
-   "median_abs_error": 49.34853172683347,
-   "share_within_100": 0.8154717910815472,
-   "r2": 0.8590650891573741,
+   "n": 3773,
+   "median_abs_error": 45.33629472692019,
+   "share_within_100": 0.793002915451895,
+   "r2": 0.884406433793891,
    "blank": 0
   },
-  "rows_with_parking_known": 4059,
+  "rows_with_parking_known": 3773,
   "chosen": "calibrated"
  },
  "parking_premium_by_bed": {
-  "0": 27.5,
-  "1": 37.0,
-  "2": 50.0,
-  "3": 64.0,
-  "4": 43.0
+  "0": 28.0,
+  "1": 71.0,
+  "2": 89.0,
+  "3": 42.5,
+  "4": 71.0
  },
  "parking_premium_by_suburb": {
-  "Sydney (NSW)": 35.0,
-  "The Rocks (NSW)": 36.5,
-  "Darlinghurst (NSW)": 38.0,
-  "Zetland (NSW)": 41.0,
-  "Moore Park (NSW)": 41.5,
-  "Barangaroo (NSW)": 42.5,
-  "Darlington (NSW)": 43.0,
-  "Beaconsfield (NSW)": 43.0,
-  "Rushcutters Bay (NSW)": 44.0,
-  "Paddington (NSW)": 44.0,
-  "Newtown (NSW)": 44.5,
-  "Annandale (NSW)": 45.0,
-  "Pyrmont (NSW)": 46.5,
-  "Camperdown (NSW)": 47.0,
-  "Millers Point (NSW)": 47.5,
-  "Dawes Point (NSW)": 48.0,
-  "Rosebery (NSW)": 48.5,
-  "Glebe (NSW)": 49.0,
-  "Forest Lodge (NSW)": 49.0,
-  "Centennial Park (NSW)": 50.5,
-  "Alexandria (NSW)": 52.0,
-  "Redfern (NSW)": 52.5,
-  "Potts Point (NSW)": 53.0,
-  "Eveleigh (NSW)": 53.5,
-  "Woolloomooloo (NSW)": 53.5,
-  "Waterloo (NSW)": 53.5,
-  "Chippendale (NSW)": 55.5,
-  "Ultimo (NSW)": 56.0,
-  "Elizabeth Bay (NSW)": 57.0,
-  "Erskineville (NSW)": 57.5,
-  "Haymarket (NSW)": 61.0,
-  "Surry Hills (NSW)": 63.5,
-  "St Peters (NSW)": 64.0
+  "Forest Lodge": 45.0,
+  "Ultimo": 51.5,
+  "Glebe (NSW)": 54.0,
+  "Rushcutters Bay": 55.5,
+  "Alexandria": 56.5,
+  "Newtown (NSW)": 61.5,
+  "Redfern": 62.0,
+  "Potts Point": 65.5,
+  "Elizabeth Bay": 66.5,
+  "Centennial Park (NSW)": 67.5,
+  "Haymarket": 70.0,
+  "Barangaroo": 70.5,
+  "Sydney": 72.0,
+  "Paddington (NSW)": 75.0,
+  "Camperdown (NSW)": 75.0,
+  "Annandale (NSW)": 76.5,
+  "The Rocks (Sydney - NSW)": 76.5,
+  "Darlington (Sydney - NSW)": 77.0,
+  "Chippendale": 78.0,
+  "Dawes Point": 79.75,
+  "Beaconsfield (NSW)": 81.0,
+  "Eveleigh": 84.5,
+  "Surry Hills": 85.0,
+  "St Peters (NSW)": 86.5,
+  "Pyrmont": 88.5,
+  "Moore Park": 88.75,
+  "Millers Point": 89.0,
+  "Darlinghurst": 92.5,
+  "Erskineville": 92.5,
+  "Rosebery (NSW)": 94.0,
+  "Woolloomooloo": 101.5,
+  "Waterloo (NSW)": 114.5,
+  "Zetland": 139.0
  },
  "floor_effect": {
-  "1": 791.2767823782344,
-  "5": 793.6214939450226,
-  "10": 798.9617383822713,
-  "20": 810.5297147112551,
-  "30": 825.898656706235
+  "1": 899.3397531549247,
+  "5": 896.9642707837984,
+  "10": 911.047919391789,
+  "20": 914.9480459080687,
+  "30": 916.2974801602144
  },
- "rent_index_12m": 0.02536025242488188,
+ "rent_index_12m": 0.03177807844262019,
  "rows_written": 65777,
- "csv": "rents_practice-team.csv",
+ "csv": "rents_evaluateai.csv",
  "exo": {
-  "osm": false,
-  "places": false,
-  "census": false,
-  "bonds": false,
+  "osm": true,
+  "places": true,
+  "census": true,
+  "bonds": true,
   "vg": false,
-  "on": []
+  "on": [
+   "osm",
+   "census",
+   "bonds",
+   "vg"
+  ]
  },
- "exo_features": []
+ "exo_features": [
+  "osm_km_rail",
+  "osm_km_light_rail",
+  "osm_km_supermarket",
+  "osm_supermarket_n_500m",
+  "osm_km_park",
+  "osm_km_school",
+  "osm_school_n_1000m",
+  "osm_km_main_road",
+  "cen_median_age_persons",
+  "cen_median_mortgage_repay_monthly",
+  "cen_median_tot_prsnl_inc_weekly",
+  "cen_median_rent_weekly",
+  "cen_median_tot_fam_inc_weekly",
+  "cen_average_num_psns_per_bedroom",
+  "cen_median_tot_hhd_inc_weekly",
+  "cen_average_household_size",
+  "bond_pc_bed_lmed",
+  "bond_pc_bed_n",
+  "bond_pc_lmed",
+  "bond_pc_growth",
+  "bond_rel"
+ ]
 }
