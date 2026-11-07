@@ -21,6 +21,8 @@ import pydeck as pdk
 import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import logic as L  # noqa: E402
 from src import config as C  # noqa: E402
 from src import neighbourhood as nb  # noqa: E402
 
@@ -41,7 +43,7 @@ CSS = f"""
 html, body, .stApp, .stMarkdown, p, li, label, input, button, textarea, h1, h2, h3, h4,
 [data-testid="stTab"] p, [data-testid="stMetricValue"] {{ font-family: 'Barlow', system-ui, sans-serif !important; }}
 header[data-testid="stHeader"] {{ background: transparent; }}
-.block-container {{ max-width: 1120px; padding-top: 1.6rem; padding-bottom: 4rem; }}
+.block-container {{ max-width: 1280px; padding-top: 1.6rem; padding-bottom: 4rem; }}
 footer {{ visibility: hidden; }}
 .brand {{ display: flex; align-items: center; gap: 14px; margin: 0 0 4px; }}
 .brand svg {{ flex: none; }}
@@ -139,6 +141,50 @@ footer {{ visibility: hidden; }}
 .proj li {{ display: block; }}
 .proj .when {{ color: {MUTED}; font-size: 13.5px; }}
 .fine {{ color: {MUTED}; font-size: 13.5px; margin-top: 28px; }}
+/* rent / sale layout */
+.brand.small {{ margin: 0; }} .brand.small h1 {{ font-size: 34px; }} .brand.small svg {{ width: 34px; height: 34px; }}
+.count {{ color: {MUTED}; font-size: 14px; margin: 2px 0 6px; }}
+.pick {{ color: {MUTED}; font-size: 16px; margin: 40px 0 0; }}
+.flat-title.top {{ margin-top: 0; }}
+.sections {{ display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 14px; }}
+.sections a {{ display: inline-flex; align-items: center; height: 34px; padding: 0 12px; border-radius: 17px;
+              background: #fff; border: 1px solid #DCE2DE; color: {INK}; text-decoration: none; font-size: 14px; }}
+.sections a:first-child {{ background: {ASPHALT}; border-color: {ASPHALT}; color: #fff; font-weight: 600; }}
+.sections.sale a:first-child {{ background: {EUCALYPT}; border-color: {EUCALYPT}; }}
+.anchor {{ position: relative; top: -70px; height: 0; }}
+.gap .acc {{ display: block; margin-top: 6px; color: #AEB4AF; font-size: 14.5px; }}
+.bay.sale {{ background: #1F4F43; background-image: none; }}
+.bay.sale .lbl {{ font-size: 16px; color: #CFE3DB; }}
+.bay.sale .num {{ font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 62px; line-height: 1;
+                 margin-top: 6px; color: #fff; }}
+.bay.sale .gap {{ color: #CFE3DB; font-size: 15px; }}
+.sec-title {{ font-size: 18px; font-weight: 600; color: {INK}; margin: 26px 0 8px; }}
+.sec-title span {{ font-weight: 400; color: {MUTED}; font-size: 15px; }}
+.sims {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; }}
+.sim {{ display: flex; flex-direction: column; gap: 5px; padding: 12px 14px; border: 1px solid #DCE2DE; border-radius: 10px;
+       background: #fff; text-decoration: none !important; color: {INK} !important; min-width: 0; }}
+.sim:hover {{ border-color: {EUCALYPT}; }}
+.sim .tag {{ align-self: flex-start; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 4px;
+            background: #EEF1EE; color: #3D4744; }}
+.sim .ad {{ font-size: 15px; font-weight: 600; line-height: 1.25; }}
+.sim .n {{ font-family: 'Barlow Condensed', sans-serif; font-weight: 600; font-size: 28px; line-height: 1; }}
+.sim .n small {{ font-family: Barlow, sans-serif; font-size: 13px; font-weight: 400; color: {MUTED}; margin-left: 3px; }}
+.sim .d {{ align-self: flex-start; font-size: 13.5px; font-weight: 600; padding: 2px 8px; border-radius: 4px; }}
+.sim .lo {{ background: #DCEBE5; color: #1F4F43; }} .sim .hi {{ background: #F6E1D8; color: #8A3A1C; }}
+.sim .eq {{ background: #EEF1EE; color: #3D4744; }}
+.sim .f {{ font-size: 13px; color: {MUTED}; line-height: 1.35; }} .sim .f.x {{ color: {INK}; }}
+.sim .live {{ font-size: 13px; color: {BLUE}; font-weight: 600; }}
+.hist {{ display: grid; grid-template-columns: 1fr auto; gap: 0 12px; padding: 8px 0; border-top: 1px solid #EEF1EE;
+        font-size: 15px; }}
+.hist:first-of-type {{ border-top: 0; }} .hist span:last-child {{ color: {MUTED}; text-align: right; }}
+.st-key-fairbox {{ background: #fff; border: 1px solid #DCE2DE; border-radius: 12px; padding: 16px 18px; }}
+.st-key-fairbox h3 {{ font-size: 17px; font-weight: 600; margin: 0; padding: 0; color: {INK}; }}
+@media (max-width: 640px) {{
+  .sims {{ grid-auto-flow: column; grid-auto-columns: 220px; grid-template-columns: none; overflow-x: auto;
+          padding-bottom: 4px; }}
+  .bay.sale .num {{ font-size: 50px; }}
+  .brand.small h1 {{ font-size: 28px; }}
+}}
 </style>
 """
 
@@ -215,6 +261,7 @@ def flats() -> pd.DataFrame:
     df["key"] = (df.label + " " + df.suburb).str.upper()
     if "v_is_flat" in df:
         df = df[df.v_is_flat.fillna(True).astype(bool)]
+    df = df[L.is_home(raw.loc[df.index])]  # the valuation file marks car spaces and storage as flats
     return df.reset_index(drop=True)
 
 
@@ -237,20 +284,47 @@ def facts_line(f: pd.Series) -> str:
     size = f.get("r_flats_in_building", f.get("v_flats_in_building", np.nan))
     if pd.notna(size):
         bits.append(f"in a building of {int(size)} flats")
-    return ", ".join(bits).capitalize() + (f", {html.escape(f.suburb)}" if f.suburb else "")
+    if f.suburb:
+        bits.append(html.escape(f.suburb))
+    line = ", ".join(bits)
+    return line[:1].upper() + line[1:]
 
 
-def bay_card(f: pd.Series) -> str:
+def heldout(m: dict | None) -> dict | None:
+    """The hand-in model's held-out scores from a metrics file."""
+    if not m:
+        return None
+    return m["heldout"].get(m.get("handin") or "", m["heldout"].get("Our model (LightGBM, snapshots)"))
+
+
+def bay_card(f: pd.Series, m: dict | None = None) -> str:
     w, wo = float(f.r_with_car), float(f.r_without_car)
     gap = w - wo
     has = f.get("r_car_space")
     tag = "" if pd.isna(has) else (" This flat is listed with a car space." if has >= 1
                                    else " This flat is listed without one.")
+    h = heldout(m)
+    acc = (f'<span class="acc">On {m["test_rows"]:,} adverts it never saw, half were within '
+           f'{money(h["median_abs_error"])} a week of the asking rent.</span>') if h else ""
     return f"""<div class="bay"><div class="bays">
 <div class="slot"><div class="lbl">With a car space</div><div class="num">{money(w)}<small>a week</small></div></div>
 <div class="slot empty"><div class="lbl">Without a car space</div><div class="num">{money(wo)}<small>a week</small></div></div>
 </div><div class="gap">The car space is worth <b>{money(gap)} a week</b> here, about {money(gap * 52, 10)} a year.
-<span>{tag}</span></div></div>"""
+<span>{tag}</span>{acc}</div></div>"""
+
+
+def sale_band(f: pd.Series, m: dict | None) -> str:
+    v = float(f.v_value)
+    h = heldout(m)
+    acc = ""
+    if h:
+        cap = C.VALUE_SCORE_MAX_PRICE
+        acc = (f'{h["share_within_10pct"]:.0%} of {m["test_rows"]:,} sales it never saw, all under '
+               f'${cap / 1e6:g}M, landed within 10% of the price.')
+        if v > cap:
+            acc += " This flat is above that range."
+    return (f'<div class="bay sale"><div class="lbl">Sale value, 31 August 2026</div>'
+            f'<div class="num">{money(v, 1000)}</div><div class="gap">{acc}</div></div>')
 
 
 def rent_steps(f: pd.Series, m: dict | None) -> list[str]:
@@ -267,35 +341,62 @@ def rent_steps(f: pd.Series, m: dict | None) -> list[str]:
     own = f.r_with_car if f.get("r_car_space", 0) >= 1 else f.r_without_car
     ch = (own / a - 1) if pd.notna(a) and a > 0 else np.nan
     second = ("<b>Adjusted for this flat</b>: floor, size, building and nearby buildings "
-              + (f"moved it {ch:+.0%}." if pd.notna(ch) else "set the final figure."))
+              + ("set the final figure." if pd.isna(ch) else
+                 "left it unchanged." if abs(ch) < 0.005 else f"moved it {ch:+.0%}."))
     third = "<b>Priced twice</b>, with and without a car space; a car space can only add to the rent."
-    steps = [first, second, third]
-    if m:
-        h = m["heldout"]["Our model (LightGBM, snapshots)"]
-        steps.append(f"<b>How close it usually lands</b>: on {m['test_rows']:,} adverts it never saw, half were "
-                     f"within {money(h['median_abs_error'])} a week of the asking rent.")
-    return steps
+    return [first, second, third]
 
 
-def value_card(f: pd.Series, m: dict | None) -> str:
+def value_card(f: pd.Series) -> str:
+    """How we got the value (the number itself is in the sale band above)."""
     kind = f.get("v_anchor_kind")
     if kind == 0:
-        why = f"Started from its own For Sale advert before 31 August ({money(f.v_ask, 1000)})."
+        why = f"<b>Started from its own For Sale advert</b> before 31 August ({money(f.v_ask, 1000)})."
     elif kind == 1:
-        why = (f"Started from its last sale, {f.v_own_last_age_y:.1f} years ago, brought to August 2026 "
-               f"prices ({money(f.v_own_last, 1000)}).")
+        why = (f"<b>Started from its last sale</b>, {f.v_own_last_age_y:.1f} years ago, brought to August 2026 "
+               f"prices: {money(f.v_own_last, 1000)}.")
     elif kind == 2:
         n = int(f.v_bldg_bed_n)
-        why = f"Started from {n} sale{'s' if n != 1 else ''} in its building ({money(f.v_bldg_bed, 1000)} median)."
+        why = (f"<b>Started from {n} sale{'s' if n != 1 else ''} in its building</b> "
+               f"({money(f.v_bldg_bed, 1000)} median).")
     else:
-        why = f"Started from similar flats in {html.escape(f.suburb)}."
-    return f"""<div class="card"><h3>Estimated value, 31 August 2026</h3>
-<div class="big">{money(f.v_value, 1000)}</div><p>{why}</p></div>"""
+        why = f"<b>Started from similar flats in {html.escape(f.suburb)}</b>."
+    steps = [why]
+    n = f.get("v_bldg_bed_n", np.nan)
+    if kind != 2 and pd.notna(n) and n >= 1 and pd.notna(f.get("v_bldg_bed", np.nan)):
+        n = int(n)
+        steps.append(f"<b>Its building</b>: {n} sale{'s' if n != 1 else ''} of flats with the same bedrooms, "
+                     f"median {money(f.v_bldg_bed, 1000)}.")
+    return ('<div class="card why"><h3>How we got the value</h3><ol>' +
+            "".join(f"<li>{s}</li>" for s in steps) + "</ol></div>")
 
 
 # ------------------------------------------------------------------ buildings (rent history)
 REF = pd.Timestamp(C.RENT_CUTOFF)          # the files end here: "last 12 months" and "last month" count back from it
 LEASED_WORDS = {"1", "1.0", "true", "yes", "y", "t", "leased"}
+
+
+@st.cache_data(show_spinner="Reading rent adverts")
+def leases() -> pd.DataFrame | None:
+    """Past rental adverts up to the rent cut-off (supplied file, local only)."""
+    from src.loaders import load
+    try:
+        le = load("rents_leases")
+    except FileNotFoundError:
+        return None
+    return le[le.date.notna() & le.price.notna() & (le.date <= REF)].sort_values("date")
+
+
+@st.cache_data(show_spinner="Reading sales")
+def sales() -> pd.DataFrame | None:
+    """Sales and For Sale adverts up to the value cut-off (supplied file, local only)."""
+    from src.asof import until
+    from src.loaders import load
+    try:
+        s = load("value_sales")
+    except FileNotFoundError:
+        return None
+    return until(s, C.VALUE_CUTOFF)
 
 
 @st.cache_data(show_spinner="Reading rent history")
@@ -309,12 +410,8 @@ def building_data() -> pd.DataFrame:
     ri["building"] = [tidy_address(a, s) for a, s in zip(ri.building_address.fillna(""), ri.suburb)]
     ri["suburb_clean"] = ri.suburb.fillna("").str.replace(" (NSW)", "", regex=False)
     ri["unit"] = [tidy_address(a, s) for a, s in zip(ri.address.fillna(""), ri.suburb)]
-    try:
-        le = load("rents_leases")
-    except FileNotFoundError:
-        le = None
+    le = leases()
     if le is not None and len(le):
-        le = le[le.date.notna() & le.price.notna() & (le.date <= REF)].sort_values("date")
         last = le.groupby("gnaf_id").tail(1).set_index("gnaf_id")
         ri["last_rent"] = ri.gnaf_id.map(last.price)
         ri["last_date"] = ri.gnaf_id.map(last.date)
@@ -339,44 +436,134 @@ def status_flag(row: pd.Series) -> str:
     return "🟡 Advertised"
 
 
-def building_table(rows: pd.DataFrame, this_gnaf: str | None = None) -> pd.DataFrame:
+def building_table(rows: pd.DataFrame, this_gnaf: str | None = None, last_seen: bool = False) -> pd.DataFrame:
     rows = rows.sort_values(["last_date", "unit"], ascending=[False, True], na_position="last")
+    if this_gnaf is not None:  # this flat first
+        rows = pd.concat([rows[rows.gnaf_id == this_gnaf], rows[rows.gnaf_id != this_gnaf]])
     out = pd.DataFrame({
-        "Flag": [("➡️ This flat · " if g == this_gnaf else "") + status_flag(r) for g, (_, r) in
-                 zip(rows.gnaf_id, rows.iterrows())],
-        "Unit": rows.unit,
+        "Unit": [("➡️ " if g == this_gnaf else "") + u.split(",")[0] + (" · this flat" if g == this_gnaf else "")
+                 for g, u in zip(rows.gnaf_id, rows.unit)],
+        "Status": [status_flag(r) for _, r in rows.iterrows()],
         "Beds": rows.bedrooms.astype("Int64"),
         "Baths": rows.bathrooms.astype("Int64"),
         "Car space": rows.car_space.map(lambda x: "" if pd.isna(x) else ("Yes" if x >= 1 else "No")),
         "Last advertised rent": rows.get("last_rent", pd.Series(np.nan, index=rows.index)),
         "Advertised on": rows.get("last_date", pd.Series(pd.NaT, index=rows.index)).dt.date,
         "Adverts": rows.get("adverts", pd.Series(0, index=rows.index)),
-        "Our estimate, with car": rows.get("est_with", pd.Series(np.nan, index=rows.index)),
-        "Our estimate, without car": rows.get("est_without", pd.Series(np.nan, index=rows.index)),
-        "Last seen": rows.attrs_last_seen.dt.date,
+        "Estimate with car": rows.get("est_with", pd.Series(np.nan, index=rows.index)),
+        "Estimate without car": rows.get("est_without", pd.Series(np.nan, index=rows.index)),
     })
+    if last_seen:
+        out["Last seen"] = rows.attrs_last_seen.dt.date.to_numpy()
     return out
 
 
-def show_table(tab: pd.DataFrame) -> None:
-    money_col = st.column_config.NumberColumn(format="$%d")
-    st.dataframe(tab, hide_index=True, width="stretch",
-                 column_config={"Last advertised rent": money_col, "Our estimate, with car": money_col,
-                                "Our estimate, without car": money_col})
+def show_table(tab: pd.DataFrame, key: str, first: int = 8) -> None:
+    """The first `first` rows, with a switch to show all of them (no scroll box inside the page)."""
+    money_col = st.column_config.NumberColumn(format="$%,d")
+    cfg = {c: money_col for c in ("Last advertised rent", "Estimate with car", "Estimate without car",
+                                  "Sold for", "Last asking price")}
+    show = tab
+    if len(tab) > first and not st.toggle(f"Show all {len(tab):,}", key=key):
+        show = tab.head(first)
+    st.dataframe(show, hide_index=True, width="stretch", column_config=cfg, height=35 * (len(show) + 1) + 3)
 
 
 def building_block(f: pd.Series) -> None:
-    """Change 2: other flats in this building with rent history, flagged."""
+    """Other flats in this building with rent history, flagged; this flat first."""
     bkey = f.get("r_bkey")
     if not isinstance(bkey, str) or not bkey.strip("|"):
         return
     bd = building_data()
     rows = bd[(bd.bkey == bkey) & bd.get("last_date", pd.Series(pd.NaT, index=bd.index)).notna()]
-    st.markdown(f'<div class="card"><h3>Rent history in this building</h3><p>{len(rows):,} flat'
-                f'{"s" if len(rows) != 1 else ""} in this building advertised for rent up to 31 July 2026. '
-                '🔵 listed in July 2026 · 🟢 leased · 🟡 advertised.</p></div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="anchor" id="history"></div><div class="sec-title">Rent history in this building '
+                f'<span>· {len(rows):,} flat{"s" if len(rows) != 1 else ""} advertised up to 31 July 2026 · '
+                '🔵 listed in July 2026 · 🟢 leased · 🟡 advertised</span></div>', unsafe_allow_html=True)
     if len(rows):
-        show_table(building_table(rows, f.gnaf_id))
+        show_table(building_table(rows, f.gnaf_id), key=f"hist_{f.gnaf_id}")
+
+
+def flat_adverts(gnaf_id: str) -> str:
+    """This flat's own rent adverts, newest first, as one line."""
+    le = leases()
+    if le is None:
+        return ""
+    a = le[le.gnaf_id == gnaf_id].sort_values("date", ascending=False)
+    if a.empty:
+        return ""
+    items = " · ".join(f"{money(p)} ({d:%b %Y})" for p, d in zip(a.price.head(4), a.date.head(4)))
+    more = f" and {len(a) - 4} more" if len(a) > 4 else ""
+    return (f'<div class="kv"><span>This flat\'s adverts</span><b style="font-size:15px;color:{INK};'
+            f'font-weight:500">{items}{more}</b></div>')
+
+
+def sales_block(f: pd.Series) -> None:
+    """This flat's sales and recent sales in its building, nothing after the value cut-off."""
+    s = sales()
+    if s is None:
+        return
+    d = flats()
+    own, bld = L.sales_history(s, d.set_index("gnaf_id").v_bkey, f.gnaf_id, f.get("v_bkey"), C.VALUE_CUTOFF)
+    st.markdown('<div class="anchor" id="history"></div><div class="sec-title">Sales history '
+                '<span>· supplied sales file, up to 31 August 2026</span></div>', unsafe_allow_html=True)
+    if len(own):
+        lines = "".join(
+            f'<div class="hist"><span>{"Sold" if t == "Sold" else "Advertised for sale"} {dt.day} {dt:%b %Y}</span>'
+            f'<span>{money(p)}</span></div>' for t, dt, p in zip(own.type, own.date, own.price))
+        st.markdown(f'<div class="card"><h3>This flat</h3>{lines}</div>', unsafe_allow_html=True)
+    else:
+        st.caption("No sales of this flat in the file.")
+    if len(bld):
+        tab = sales_table(bld)
+        st.markdown(f'<p class="count" style="margin-top:12px"><b>This building</b>: {len(bld):,} sales</p>',
+                    unsafe_allow_html=True)
+        show_table(tab, key=f"sales_{f.gnaf_id}", first=6)
+
+
+def sales_table(bld: pd.DataFrame) -> pd.DataFrame:
+    """Building sales from L.sales_history as a display table."""
+    labels = flats().set_index("gnaf_id").label
+    return pd.DataFrame({
+        "Unit": [str(labels.get(g, a)).split(",")[0] for g, a in zip(bld.gnaf_id, bld.address)],
+        "Beds": bld.bedrooms.astype("Int64"),
+        "Car spaces": bld.car_spaces.astype("Int64"),
+        "Sold for": bld.price,
+        "Sold on": bld.date.dt.date,
+        "Last asking price": bld.asked,
+    })
+
+
+def similar_block(f: pd.Series, mode: str) -> None:
+    """Flats like this one nearby, with the main difference on each card. Each card opens that flat."""
+    d = flats()
+    s = L.similar_flats(d, f, mode, n=4)  # one row of four cards
+    if s.empty:
+        return
+    bd = building_data().set_index("gnaf_id") if mode == "rent" else None
+    cards = []
+    for _, row in s.iterrows():
+        n = L.similar_notes(row, f, mode)
+        if mode == "rent":
+            num, unit = money(row.est), (" a week" + (", with car" if row["compare"] == "with" else ""))
+            live = ""
+            if row.gnaf_id in bd.index and pd.notna(bd.at[row.gnaf_id, "last_date"]):
+                ld, lr = bd.at[row.gnaf_id, "last_date"], bd.at[row.gnaf_id, "last_rent"]
+                live = (f"Listed {ld:%b %Y} at {money(lr)}" if ld >= REF - pd.DateOffset(months=1)
+                        else f"Last advertised {money(lr)}, {ld:%b %Y}")
+        else:
+            num, unit, live = money(row.est, 1000), "", ""
+        addr = row.label if not row.same_building else row.label.split(",")[0]
+        cards.append(
+            f'<a class="sim" target="_self" href="?flat={quote(str(row.gnaf_id))}&amp;mode={mode}">'
+            f'<span class="tag">{html.escape(n["where"])}</span><span class="ad">{html.escape(addr)}</span>'
+            f'<span class="n">{num}<small>{unit}</small></span><span class="d {n["tone"]}">{n["diff"]}</span>'
+            f'<span class="f">{html.escape(n["alike"])}</span>'
+            + (f'<span class="f x">{html.escape(n["differs"])}</span>' if n["differs"] else "")
+            + (f'<span class="live">{live}</span>' if live else "") + "</a>")
+    basis = ("same bedrooms, within 400 m · our July 2026 estimates" if mode == "rent"
+             else "same bedrooms, within 400 m · our 31 August 2026 values")
+    st.markdown(f'<div class="anchor" id="similar"></div><div class="sec-title">Similar flats nearby '
+                f'<span>· {basis}</span></div><div class="sims">{"".join(cards)}</div>', unsafe_allow_html=True)
 
 
 # ------------------------------------------------------------------ decision helpers
@@ -556,16 +743,15 @@ def live_developments(suburb: str):
 
 def around(f: pd.Series) -> None:
     pl = places_df()
+    title = '<div class="anchor" id="around"></div><div class="sec-title">Around this flat</div>'
     if pl is None or pd.isna(f.lat):
-        st.markdown('<div class="around-title">Around this flat</div><p class="flat-facts">Run '
+        st.markdown(title + '<p class="flat-facts">Run '
                     '<code>python scripts/fetch_exo.py places</code> and <code>python -m src.exo.build</code> '
                     'to see what is nearby.</p>', unsafe_allow_html=True)
         return
     lat, lon = float(f.lat), float(f.lon)
     near = nb.nearby(lat, lon, pl, radius_km=1.6)
-    st.markdown('<div class="around-title">Around this flat</div><p class="flat-facts">Rent and price are not '
-                'everything: how you get around, what is close, and what is being built nearby.</p>',
-                unsafe_allow_html=True)
+    st.markdown(title, unsafe_allow_html=True)
     left, right = st.columns([1.25, 1], gap="medium")
 
     with left:
@@ -576,7 +762,7 @@ def around(f: pd.Series) -> None:
         buses = near[(near.kind == "bus") & (near.dist_km <= 0.8)]
         buses = buses.assign(tip="Bus stop " + buses.name + ": " +
                              buses.routes.where(buses.routes != "", "routes not listed"))
-        embed_html(leaflet_map(lat, lon, f.label, show, buses), height=430)
+        embed_html(leaflet_map(lat, lon, f.label, show, buses), height=400)
         keys = "".join(f'<span><i class="chip" style="background:{hexc(KIND_COLOR[k])};'
                        f'{"color:#1B2422" if k == "construction" else ""}">{l}</i>{t}</span>'
                        for l, k, t in KEY)
@@ -603,23 +789,14 @@ def around(f: pd.Series) -> None:
         if shop is not None:
             rows.append(("Supermarket", f"{shop['walk']} min walk"))
         trips = nb.travel(lat, lon)
-        cbd = trips.iloc[0]
-        rows.append(("To the CBD", f"about {cbd.bike} min by bike" + (f", {int(cbd.walk)} on foot" if pd.notna(cbd.walk) else "")))
         lis = "".join(f"<li><span>{html.escape(a)}</span><span>{html.escape(b)}</span></li>" for a, b in rows)
         bus = (f'<li style="display:block"><span>Buses: {n_stops} stop{"s" if n_stops != 1 else ""} within 5 minutes'
                + (f'</span><div class="routes">{"".join(f"<span>{html.escape(r)}</span>" for r in routes[:14])}</div>'
                   if routes else " (routes not listed)</span>") + "</li>") if n_stops else ""
         st.markdown(f'<div class="mode"><h3>Without a car</h3><ul>{lis}{bus}</ul></div>', unsafe_allow_html=True)
 
-        prem = (f.r_with_car - f.r_without_car) if "r_with_car" in f and pd.notna(f.r_with_car) else None
-        car_rows = []
-        if prem is not None:
-            car_rows.append(("A car space here", f"{money(prem)} a week"))
-        for _, t in trips.iloc[[0, 1, 4]].iterrows():
-            car_rows.append((t.place.replace(" (Martin Place)", ""), f"about {t.drive} min drive"))
-        lis = "".join(f"<li><span>{html.escape(a)}</span><span>{html.escape(b)}</span></li>" for a, b in car_rows)
-        st.markdown(f'<div class="mode"><h3>With a car</h3><ul>{lis}</ul></div>', unsafe_allow_html=True)
-
+        sites = near[(near.kind == "construction") & (near.dist_km <= 1.5)].sort_values("dist_km")
+        proj = sites.head(6)
         close = []
         for kind, label in (("hospital", "Hospital"), ("mall", "Shopping centre"), ("school", "School"),
                             ("park", "Park")):
@@ -627,22 +804,25 @@ def around(f: pd.Series) -> None:
             if x is not None:
                 where = f"{x['dist_km']:.1f} km" if x["dist_km"] >= 1 else f"{x['walk']} min walk"
                 close.append((f"{label}" + (f": {x['name']}" if x["name"] else ""), where))
+        if len(sites):
+            lo, hi = sites.dist_km.min(), sites.dist_km.max()
+            close.append((f"Being built: {len(sites)} site{'s' if len(sites) != 1 else ''}",
+                          f"{lo:.1f} km" if round(lo, 1) == round(hi, 1) else f"{lo:.1f} to {hi:.1f} km"))
         lis = "".join(f"<li><span>{html.escape(a)}</span><span>{html.escape(b)}</span></li>" for a, b in close)
         st.markdown(f'<div class="mode"><h3>Closest</h3><ul>{lis}</ul></div>', unsafe_allow_html=True)
 
-    # trips
+    # trips (drive times live here; the car-space value is in the rent band)
     body = "".join(
         f'<tr><td>{html.escape(t.place)}</td><td class="n">{t.km:.1f} km</td><td class="n">{t.drive} min</td>'
         f'<td class="n">{t.bike} min</td><td class="n">{(str(int(t.walk)) + " min") if pd.notna(t.walk) else ""}</td>'
         f'<td><a href="{t.transit_link}" target="_blank" rel="noopener">Public transport times</a></td></tr>'
         for t in trips.itertuples())
-    st.markdown(f'<p class="flat-facts" style="margin:18px 0 6px"><b>Getting to the places people ask about.</b> '
-                'Rough estimates from distance, not a journey planner; the links open real trip times.</p>'
-                f'<table class="trips"><thead><tr><th>To</th><th>Distance</th><th>Car</th><th>Bike</th>'
-                f'<th>On foot</th><th></th></tr></thead><tbody>{body}</tbody></table>', unsafe_allow_html=True)
+    st.markdown(f'<table class="trips" style="margin-top:4px"><thead><tr><th>To</th><th>Distance</th><th>Car</th>'
+                f'<th>Bike</th><th>On foot</th><th></th></tr></thead><tbody>{body}</tbody></table>'
+                '<p class="count" style="margin-top:6px">Rough estimates from distance, not a journey planner; '
+                'the links open real trip times.</p>', unsafe_allow_html=True)
 
-    # projects
-    proj = near[(near.kind == "construction") & (near.dist_km <= 1.5)].head(6)
+    # projects: the list, plus live development applications when an API key is set
     das = live_developments(f.suburb)
     items = "".join(
         f'<li><b>{html.escape(p.name or p.detail.capitalize() or "Construction site")}</b>'
@@ -654,29 +834,37 @@ def around(f: pd.Series) -> None:
             f'{html.escape(str(d["description"])[:160])}<div class="when">Lodged {html.escape(str(d.get("date", ""))[:10])}'
             f' in {html.escape(f.suburb)}</div></li>' for d in das)
     if items:
-        st.markdown(f'<div class="mode proj" style="margin-top:14px"><h3>What could change the area</h3>'
-                    f'<ul>{items}</ul><p class="when" style="color:{MUTED};font-size:13.5px;margin:8px 0 0">'
-                    'New stations and shops tend to lift rents and prices; years of building work nearby can '
-                    'hold them back. Applications are proposals: not all get built.</p></div>',
-                    unsafe_allow_html=True)
+        with st.expander("What could change the area"):
+            st.markdown(f'<div class="mode proj" style="margin:0;border:0;padding:0"><ul>{items}</ul>'
+                        f'<p class="when" style="color:{MUTED};font-size:13.5px;margin:8px 0 0">'
+                        'New stations and shops tend to lift rents and prices; years of building work nearby can '
+                        'hold them back. Applications are proposals: not all get built.</p></div>',
+                        unsafe_allow_html=True)
 
 
 def fair_rent(f: pd.Series, m: dict | None) -> None:
-    st.markdown('<div class="card"><h3>Is this rent fair?</h3>'
-                '<p>Type the weekly rent you were quoted for this flat.</p></div>', unsafe_allow_html=True)
+    with st.container(key="fairbox"):
+        fair_rent_body(f, m)
+
+
+def fair_rent_body(f: pd.Series, m: dict | None) -> None:
+    st.markdown('<div class="anchor" id="fair"></div><h3>Is this rent fair?</h3>', unsafe_allow_html=True)
     c1, c2 = st.columns([1, 1])
     quoted = c1.number_input("Weekly rent quoted ($)", min_value=0, max_value=20_000, value=0, step=10,
                              key=f"q_{f.gnaf_id}")
     car = c2.radio("Does it come with a car space?", ["Yes", "No"], horizontal=True,
                    index=0 if f.get("r_car_space", 0) >= 1 else 1, key=f"c_{f.gnaf_id}")
     if not quoted:
+        st.caption("Type the weekly rent you were quoted for this flat.")
         return
     est = float(f.r_with_car if car == "Yes" else f.r_without_car)
-    band = float(m["heldout"]["Our model (LightGBM, snapshots)"]["median_abs_error"]) if m else 0.1 * est
+    h = heldout(m)
+    band = float(h["median_abs_error"]) if h else 0.1 * est
     diff = quoted - est
     if abs(diff) <= band:
         verdict, color = "In line with similar flats", EUCALYPT
-        note = f"Within {money(band)} of our estimate of {money(est)}, the range half our test rents fell in."
+        note = (f"Within {money(band)} of our estimate of {money(est)}, the range half our test rents fell in."
+                if h else f"Within 10% of our estimate of {money(est)}.")
     elif diff > 0:
         verdict, color = f"{money(diff)} a week above what we'd expect", RUST
         note = f"Our estimate is {money(est)}. That is {money(diff * 52, 10)} a year more, worth asking about."
@@ -685,8 +873,8 @@ def fair_rent(f: pd.Series, m: dict | None) -> None:
         note = f"Our estimate is {money(est)}. A good price, or something about the flat we can't see."
     lo, hi = est - 3 * band, est + 3 * band
     pos = lambda x: 100 * (min(max(x, lo), hi) - lo) / (hi - lo)  # noqa: E731
-    st.markdown(f"""<div class="card"><div class="verdict" style="color:{color}">{verdict}</div>
-<p>{note}</p>
+    st.markdown(f"""<div><div class="verdict" style="color:{color}">{verdict}</div>
+<p style="color:#3D4744;font-size:15.5px;margin:6px 0 0">{note}</p>
 <div class="scale"><div class="track"></div>
 <div class="band" style="left:{pos(est - band)}%;width:{pos(est + band) - pos(est - band)}%"></div>
 <div class="est" style="left:{pos(est)}%"></div>
@@ -697,12 +885,6 @@ def fair_rent(f: pd.Series, m: dict | None) -> None:
 
 # ------------------------------------------------------------------ page
 st.markdown(CSS, unsafe_allow_html=True)
-st.markdown(f'<div class="brand">{LOGO}<h1>Evaluate.AI</h1></div>'
-            '<p class="lede">What every flat in the City of Sydney should rent for, with and without a car '
-            'space, and what it would sell for.</p>', unsafe_allow_html=True)
-if (C.SUPPLIED / "MOCK_DATA_DO_NOT_USE_FOR_PITCH.txt").exists():
-    st.markdown('<div class="mock">Practice data: these numbers are synthetic. Re-run the pipelines on the '
-                'real files before recording.</div>', unsafe_allow_html=True)
 
 df = flats()
 if df.empty:
@@ -710,75 +892,180 @@ if df.empty:
     st.stop()
 mr, mv = metrics("rents"), metrics("valuation")
 
+# a similar-flat card links here with ?flat=<gnaf_id>&mode=rent|sale
+qp = st.query_params
+if "flat" in qp:
+    hit = df[df.gnaf_id == qp["flat"]]
+    if len(hit):
+        st.session_state.update(q=hit.label.iloc[0], sel=hit.gnaf_id.iloc[0], bsel=None)
+        if qp.get("mode") in ("rent", "sale"):
+            st.session_state["mode"] = qp["mode"].title()
+    st.query_params.clear()
+
+head_l, head_r = st.columns([3, 1], vertical_alignment="center")
+head_l.markdown(f'<div class="brand small">{LOGO}<h1>Evaluate.AI</h1></div>', unsafe_allow_html=True)
+st.session_state.setdefault("mode", "Rent")
+mode = head_r.segmented_control("Show", ["Rent", "Sale"], required=True, key="mode",
+                                label_visibility="collapsed", width="stretch") or "Rent"
+if (C.SUPPLIED / "MOCK_DATA_DO_NOT_USE_FOR_PITCH.txt").exists():
+    st.markdown('<div class="mock">Practice data: these numbers are synthetic. Re-run the pipelines on the '
+                'real files before recording.</div>', unsafe_allow_html=True)
+
 tab_flat, tab_map, tab_proof = st.tabs(["Look up a flat", "Car spaces across the city",
                                         "How accurate it is"])
 
-with tab_flat:
-    q = st.text_input("Street address", key="q", placeholder="Start typing a street, like Powell Street",
-                       label_visibility="collapsed")
-    if not q.strip():
-        ex = df[df.r_anchor_kind.eq(1) & df.v_value.notna()] if "v_value" in df and "r_anchor_kind" in df else df
-        ex = ex.sample(min(3, len(ex)), random_state=3) if len(ex) else ex
-        st.markdown('<div class="empty-state"><p>Type part of an address to find a flat, '
-                    'or open one of these:</p></div>', unsafe_allow_html=True)
-        cols = st.columns(len(ex) or 1)
-        for c, (_, f) in zip(cols, ex.iterrows()):
-            c.button(f"{f.label}, {f.suburb}", key=f"ex_{f.gnaf_id}", width="stretch",
-                     on_click=lambda label=f.label: st.session_state.update(q=label))
+EST = "r_with_car" if mode == "Rent" else "v_value"
+BKEY = "r_bkey" if mode == "Rent" else "v_bkey"
+
+
+def pick_from(key: str, ids: list) -> None:
+    """Results-table callback: open the clicked flat."""
+    rows = st.session_state[key]["selection"]["rows"]
+    if rows:
+        st.session_state.update(sel=ids[rows[0]], bsel=None)
+
+
+def building_view(bkey: str, name: str) -> None:
+    """Every flat in one building: rent adverts (Rent) or sales (Sale). Clicking a row opens that flat."""
+    st.button("← Back", key="bback", on_click=lambda: st.session_state.update(bsel=None))
+    st.markdown(f'<div class="flat-title top">{html.escape(name)}</div>', unsafe_allow_html=True)
+    if mode == "Rent":
+        bd = building_data()
+        rows = bd[bd.bkey == bkey]
+        now = int((rows.get("last_date", pd.Series(pd.NaT, index=rows.index)) >= REF - pd.DateOffset(months=1)).sum())
+        st.markdown(f'<p class="flat-facts">{len(rows):,} flats on the rent list · {now:,} listed in July 2026 · '
+                    '🔵 listed in July 2026 · 🟢 leased · 🟡 advertised · ⚪ no adverts</p>', unsafe_allow_html=True)
+        tab = building_table(rows, last_seen=True)
+        ids = rows.sort_values(["last_date", "unit"], ascending=[False, True], na_position="last").gnaf_id.tolist()
     else:
-        hits = df[df.key.str.contains(q.strip().upper(), regex=False)]
-        if hits.empty:
-            st.info("No flat matches that address. Try just the street name.")
-        else:
-            hits = hits.sort_values("label").head(300)
-            if len(hits) > 1:
-                pick = st.selectbox(f"{len(hits):,} flats match" + (" (first 300)" if len(hits) == 300 else ""),
-                                    hits.index, format_func=lambda i: f"{hits.at[i, 'label']}, {hits.at[i, 'suburb']}")
-            else:
-                pick = hits.index[0]
-            f = df.loc[pick]
-            st.markdown(f'<div class="flat-title">{html.escape(f.label)}</div>'
-                        f'<p class="flat-facts">{facts_line(f)}</p>', unsafe_allow_html=True)
-            has_rent = "r_with_car" in f and pd.notna(f.r_with_car)
-            has_value = "v_value" in f and pd.notna(f.v_value)
+        s = sales()
+        if s is None:
+            st.caption("No sales file.")
+            return
+        _, bld = L.sales_history(s, df.set_index("gnaf_id").v_bkey, None, bkey, C.VALUE_CUTOFF)
+        st.markdown(f'<p class="flat-facts">{len(bld):,} sales up to 31 August 2026</p>', unsafe_allow_html=True)
+        tab, ids = sales_table(bld), bld.gnaf_id.tolist()
+    if len(tab):
+        mc = st.column_config.NumberColumn(format="$%,d")
+        st.dataframe(tab, hide_index=True, width="stretch", height=min(35 * (len(tab) + 1) + 3, 735),
+                     key=f"bview_{bkey}_{mode}", on_select=lambda: pick_from(
+            f"bview_{bkey}_{mode}", ids), selection_mode="single-row",
+            column_config={c: mc for c in ("Last advertised rent", "Estimate with car", "Estimate without car",
+                                            "Sold for", "Last asking price")})
+        st.caption("Click a row to open that flat.")
 
-            # quick view: both purposes at a glance
-            summary_cards(f)
-            st.write("")
 
-            # detail: one purpose at a time
-            options = (["Rent"] if has_rent else []) + (["Sale"] if has_value else [])
-            mode = st.segmented_control("Details for", options, default=options[0] if options else None,
-                                        key=f"mode_{f.gnaf_id}") if options else None
-            mode = mode or (options[0] if options else None)
-            if mode == "Rent":
-                st.markdown(bay_card(f), unsafe_allow_html=True)
-                st.write("")
-                st.markdown('<div class="card why"><h3>How we got the rent</h3><ol>' +
-                            "".join(f"<li>{s}</li>" for s in rent_steps(f, mr)) + "</ol></div>",
-                            unsafe_allow_html=True)
-                rc = room_card(f, "rent")
-                if rc:
-                    st.write("")
-                    st.markdown(rc, unsafe_allow_html=True)
-                st.write("")
-                fair_rent(f, mr)
-                st.write("")
-                building_block(f)
-            elif mode == "Sale":
-                st.markdown(sale_insights(f), unsafe_allow_html=True)
-                st.write("")
-                left, right = st.columns([1, 1], gap="medium")
-                left.markdown(value_card(f, mv), unsafe_allow_html=True)
-                vc = room_card(f, "val")
-                if vc:
-                    right.markdown(vc, unsafe_allow_html=True)
-            if not has_rent:
-                st.caption("This flat is not on the rent list, so it has an estimated value only.")
-            if not has_value:
-                st.caption("This flat is not in the City of Sydney sales list, so it has rent estimates only.")
-            st.write("")
+def flat_view(f: pd.Series) -> None:
+    has_rent = "r_with_car" in f and pd.notna(f.r_with_car)
+    has_value = "v_value" in f and pd.notna(f.v_value)
+    st.markdown(f'<div class="flat-title top">{html.escape(f.label)}</div>'
+                f'<p class="flat-facts">{facts_line(f)}</p>', unsafe_allow_html=True)
+    if mode == "Rent":
+        if not has_rent:
+            st.info("This flat is not on the rent list, so it has a sale value only. Switch to Sale above.")
             around(f)
+            return
+        st.markdown('<nav class="sections"><a href="#answer">Rent</a><a href="#around">Around</a>'
+                    '<a href="#fair">Is this rent fair?</a><a href="#similar">Similar</a>'
+                    '<a href="#history">Rent history</a></nav><div class="anchor" id="answer"></div>'
+                    + bay_card(f, mr), unsafe_allow_html=True)
+        st.write("")
+        around(f)
+        left, right = st.columns([1, 1], gap="medium")
+        with left:
+            fair_rent(f, mr)
+        right.markdown('<div class="card why"><h3>How we got the rent</h3><ol>'
+                       + "".join(f"<li>{s}</li>" for s in rent_steps(f, mr)) + "</ol>"
+                       + flat_adverts(f.gnaf_id) + "</div>" + (room_card(f, "rent") or ""), unsafe_allow_html=True)
+        similar_block(f, "rent")
+        building_block(f)
+    else:
+        if not has_value:
+            st.info("This flat is not in the City of Sydney sales list, so it has rent estimates only. "
+                    "Switch to Rent above.")
+            around(f)
+            return
+        st.markdown('<nav class="sections sale"><a href="#answer">Value</a><a href="#around">Around</a>'
+                    '<a href="#similar">Similar</a><a href="#history">Sales history</a></nav>'
+                    '<div class="anchor" id="answer"></div>' + sale_band(f, mv), unsafe_allow_html=True)
+        st.write("")
+        st.markdown(sale_insights(f), unsafe_allow_html=True)
+        st.write("")
+        around(f)
+        left, right = st.columns([1, 1], gap="medium")
+        left.markdown(value_card(f), unsafe_allow_html=True)
+        vc = room_card(f, "val")
+        if vc:
+            right.markdown(vc, unsafe_allow_html=True)
+        similar_block(f, "sale")
+        sales_block(f)
+
+
+with tab_flat:
+    rail, main = st.columns([1.15, 2.4], gap="large")
+    with rail:
+        q = st.text_input("Street address", key="q", placeholder="Start typing a street, like Powell Street",
+                          label_visibility="collapsed").strip()
+        all_hits = df[df.key.str.contains(q.upper(), regex=False)] if q else df.iloc[0:0]
+        hits = all_hits[all_hits[EST].notna()] if EST in all_hits else all_hits.iloc[0:0]
+        hits = hits.iloc[sorted(range(len(hits)), key=lambda i: L.unit_sort_key(hits.label.iloc[i]))]
+        if q and all_hits.empty:
+            st.info("No flat matches that address. Try just the street name.")
+        elif q:
+            what = "rent estimate" if mode == "Rent" else "sale value"
+            st.markdown(f'<p class="count">{len(hits):,} flat{"s" if len(hits) != 1 else ""} with a {what}'
+                        + (f" (first 500 shown)" if len(hits) > 500 else "") + "</p>", unsafe_allow_html=True)
+            other = len(all_hits) - len(hits)
+            if other:
+                st.caption(f"{other:,} more have {'a sale value' if mode == 'Rent' else 'rent estimates'} only: "
+                           f"switch to {'Sale' if mode == 'Rent' else 'Rent'} to see them.")
+            if BKEY in hits:
+                groups = hits[hits[BKEY].fillna("").str.strip("|").ne("")].groupby(BKEY, sort=False)
+                bigs = sorted(groups, key=lambda g: -len(g[1]))[:3]
+                for bk, g in bigs:
+                    if len(g) < 2:
+                        continue
+                    name = g.label.iloc[0].split(",", 1)[-1].strip()
+                    st.button(f"Building: {name} · {len(g):,} flats", key=f"b_{bk}", width="stretch",
+                              on_click=lambda bk=bk, name=name: st.session_state.update(bsel=(bk, name), sel=None))
+            show = hits.head(500)
+            if len(show):
+                bld_part = show.label.str.split(",", n=1).str[-1]
+                names = show.label.str.split(",").str[0] if bld_part.nunique() == 1 else show.label
+                tab = pd.DataFrame({
+                    "Flat": names.to_numpy(), "Beds": show.beds.astype("Int64").to_numpy(),
+                    ("With car" if mode == "Rent" else "Value"): show[EST].round(-3 if mode == "Sale" else 0)
+                    .to_numpy()})
+                rkey = f"res_{mode}_{abs(hash(q))}"
+                st.dataframe(tab, hide_index=True, width="stretch", height=min(35 * (len(tab) + 1) + 3, 560),
+                             key=rkey, on_select=lambda: pick_from(rkey, show.gnaf_id.tolist()),
+                             selection_mode="single-row",
+                             column_config={"Beds": st.column_config.NumberColumn(width=44),
+                                            tab.columns[2]: st.column_config.NumberColumn(
+                                                format="$%,d", width=70 if mode == "Rent" else 92)})
+
+    with main:
+        bsel = st.session_state.get("bsel")
+        sel = st.session_state.get("sel")
+        ids = set(all_hits.gnaf_id)
+        if bsel:
+            building_view(*bsel)
+        elif sel in ids:
+            flat_view(df[df.gnaf_id == sel].iloc[0])
+        elif len(all_hits) == 1:
+            flat_view(all_hits.iloc[0])
+        elif not q:
+            st.markdown('<p class="lede">What every flat in the City of Sydney should rent for, with and without '
+                        'a car space, and what it would sell for.</p><div class="empty-state"><p>Type part of an '
+                        'address to find a flat, or open one of these:</p></div>', unsafe_allow_html=True)
+            ex = df[df.r_anchor_kind.eq(1) & df.v_value.notna()] if "v_value" in df and "r_anchor_kind" in df else df
+            ex = ex.sample(min(3, len(ex)), random_state=3) if len(ex) else ex
+            for _, e in ex.iterrows():
+                st.button(f"{e.label}, {e.suburb}", key=f"ex_{e.gnaf_id}",
+                          on_click=lambda e=e: st.session_state.update(q=e.label, sel=e.gnaf_id, bsel=None))
+        elif len(hits):
+            st.markdown('<p class="pick">Pick a flat from the list, or open a whole building.</p>',
+                        unsafe_allow_html=True)
 
 with tab_map:
     if "r_with_car" not in df:
@@ -840,16 +1127,16 @@ with tab_map:
                 "Car space": rows.r_car_space.map(lambda x: "" if pd.isna(x) else ("Yes" if x >= 1 else "No")),
                 "With car": rows.r_with_car, "Without car": rows.r_without_car,
                 "Car space adds": rows.prem}).reset_index(drop=True)
-            labels = rows.label.tolist()
+            labels, gids = rows.label.tolist(), rows.gnaf_id.tolist()
 
-            def open_flat(labels=labels):
+            def open_flat(labels=labels, gids=gids):
                 sel = st.session_state.get("carlist")
                 try:
                     picked = sel["selection"]["rows"]
                 except Exception:  # noqa: BLE001
                     picked = getattr(getattr(sel, "selection", None), "rows", []) or []
                 if picked:
-                    st.session_state["q"] = labels[picked[0]]
+                    st.session_state.update(q=labels[picked[0]], sel=gids[picked[0]], bsel=None, mode="Rent")
                     st.session_state["opened_from_map"] = labels[picked[0]]
 
             mc = st.column_config.NumberColumn(format="$%d")
@@ -896,5 +1183,5 @@ with tab_proof:
                         unsafe_allow_html=True)
 
 st.markdown('<p class="fine">Estimates are automated and indicative only. Data © Microburbs; map © OpenStreetMap '
-            'contributors, © CARTO. Built for the Microburbs Hackathon, 7 November 2026.</p>',
+            'contributors. Built for the Microburbs Hackathon, 7 November 2026.</p>',
             unsafe_allow_html=True)

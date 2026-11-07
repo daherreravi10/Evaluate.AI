@@ -60,6 +60,7 @@ src/metrics.py    judges' metrics      src/validate.py   CSV contract check
 src/client.py     cached, throttled API client, same behaviour as the official one (python -m src.client = smoke test)
 src/report.py     report.html          notes.md          the team's words for the report
 app/app.py        Kerbside: Streamlit demo app (local only: shows private past prices). Fonts in app/static
+app/logic.py      app helpers without Streamlit: result order, similar flats nearby, sales history up to the cut-off
 src/exo/          outside data: osm.py census.py bonds.py vg.py places.py build.py common.py
 src/parking.py    car-space value from like-for-like raw adverts; calibrated option chosen by the held-out check
 src/neighbourhood.py  app only: places nearby, car vs no car, rough travel times, projects; live API layer if a key is set
