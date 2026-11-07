@@ -1087,7 +1087,7 @@ with tab_map:
         b["prem_txt"] = b.prem.map(lambda x: f"${x:,.0f}")
         sub_med = r.groupby("suburb").prem.median().sort_values(ascending=False)
         st.markdown(f'<div class="flat-title" style="margin-top:6px">What a car space adds to the rent</div>'
-                    f'<p class="flat-facts">Median across the City: <b>{money(r.prem.median())} a week</b>. '
+                    f'<p class="flat-facts">Median across the City: <b>${r.prem.median():,.2f} a week</b>. '
                     f'Highest in {html.escape(sub_med.index[0])} ({money(sub_med.iloc[0])}), lowest in '
                     f'{html.escape(sub_med.index[-1])} ({money(sub_med.iloc[-1])}). One dot per building.</p>'
                     f'<div class="legend">{money(lo)}<div class="ramp"></div>{money(hi)} a week</div>',
@@ -1098,7 +1098,9 @@ with tab_map:
                         f'<p>In the same building, with the same bedrooms, adverts with a car space asked a median '
                         f'<b>{money(pc["raw_median"])} a week</b> more than adverts without one '
                         f'({pc["pairs"]:,} like-for-like comparisons, last three years). The map shows our '
-                        f'estimate, which is more cautious: {money(pc["model_median"])} for the same flats.</p></div>',
+                        f'estimate, which is '
+                        + ("more cautious" if pc["model_median"] < pc["raw_median"] - 0.5 else "close to it")
+                        + f': {money(pc["model_median"])} for the same flats.</p></div>',
                         unsafe_allow_html=True)
         st.caption("Click a dot to list the flats in that building.")
         ev = st.pydeck_chart(pdk.Deck(
